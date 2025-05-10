@@ -1,0 +1,688 @@
+{% extends "base.html" %}
+
+{% block title %}
+<span data-translate="atm_assistance_title">Vittam.ai - ATM Assistance</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #1E5F74;
+        --accent-color: #F4A261;
+        --light-color: #F9F4E8;
+        --text-color: #333;
+        --kohl-black: #121212;
+        --kumkum-gold: #C29F50;
+        --sandalwood-cream: #F5EFE6;
+        --indigo-stone: #2E3A59;
+        --peepal-green: #6E8C61;
+        --regal-midnight-blue: #1A2238;
+        --ivory-white: #FAF9F6;
+        --shadow-dark: rgba(0, 0, 0, 0.4);
+        --shadow-light: rgba(0, 0, 0, 0.2);
+        --glow-gold: rgba(194, 159, 80, 0.3);
+        --glow-green: rgba(110, 140, 97, 0.3);
+    }
+
+    body {
+        font-family: 'Montserrat', sans-serif;
+        background: linear-gradient(180deg, var(--light-color) 0%, #e8e8e8 100%);
+        color: var(--text-color);
+        overflow-x: hidden;
+    }
+
+    .hero-section {
+        background: linear-gradient(rgba(30, 95, 116, 0.8), rgba(30, 95, 116, 0.9)), url('https://source.unsplash.com/random/1200x800/?atm,india');
+        background-size: cover;
+        background-position: center;
+        color: white;
+        padding: 4rem 0;
+        margin-bottom: 3rem;
+    }
+
+    .main-content {
+        display: flex;
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
+
+    .guide-container {
+        flex: 2;
+        padding: 2.5rem;
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        margin-bottom: 4rem;
+    }
+
+    .chat-container {
+        width: 40%; /* Increased width */
+        min-width: 400px; /* Minimum width to ensure visibility */
+        max-width: 600px; /* Cap to prevent over-expansion */
+        padding: 2rem;
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        margin-bottom: 4rem;
+        position: sticky;
+        top: 20px;
+        max-height: calc(100vh - 100px);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .step-card {
+        background: var(--sandalwood-cream);
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .step-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .step-card h5 {
+        color: var(--primary-color);
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .step-card p {
+        margin: 0;
+    }
+
+    .faq-section {
+        margin-top: 3rem;
+    }
+
+    .faq-item {
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .faq-item h6 {
+        color: var(--indigo-stone);
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+
+    .faq-item p {
+        margin: 0;
+    }
+
+    .info-box {
+        background-color: var(--light-color);
+        border-left: 4px solid var(--accent-color);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border-radius: 0.25rem;
+    }
+
+    .chat-header {
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .chat-header h2 {
+        font-weight: 700;
+        font-size: 1.5rem;
+        color: var(--primary-color);
+    }
+
+    .chat-box {
+        flex-grow: 1;
+        height: 300px;
+        overflow-y: auto;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        border: 1px solid #e0e0e0;
+    }
+
+    .message {
+        margin-bottom: 1rem;
+        padding: 0.8rem;
+        border-radius: 10px;
+        max-width: 80%;
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+
+    .user-message {
+        background: var(--accent-color);
+        color: white;
+        margin-left: auto;
+        text-align: right;
+    }
+
+    .bot-message {
+        background: var(--sandalwood-cream);
+        color: var(--text-color);
+        margin-right: auto;
+        border: 1px solid #ddd;
+    }
+
+    .bot-message ul {
+        padding-left: 15px;
+        margin: 0.5rem 0;
+    }
+
+    .bot-message li {
+        margin-bottom: 0.5rem;
+        list-style-type: disc;
+    }
+
+    .bot-message p {
+        margin: 0.5rem 0;
+    }
+
+    .input-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #fff;
+        border-radius: 10px;
+        padding: 0.5rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-control {
+        flex: 1;
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        color: var(--text-color);
+        font-weight: 400;
+        height: 40px;
+        font-size: 0.9rem;
+    }
+
+    .form-control:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 5px rgba(244, 162, 97, 0.5);
+    }
+
+    .form-control::placeholder {
+        color: #6c757d;
+    }
+
+    .btn-send {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.6rem 1rem;
+    }
+
+    .btn-mic {
+        background: var(--indigo-stone);
+        color: var(--sandalwood-cream);
+        border: none;
+        border-radius: 8px;
+        padding: 0.6rem 1rem;
+    }
+
+    .btn-mic.active {
+        background: var(--peepal-green);
+        color: var(--ivory-white);
+    }
+
+    .lang-select {
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        padding: 0.5rem;
+        color: var(--text-color);
+        width: 100%;
+        height: 40px;
+        font-size: 0.9rem;
+    }
+
+    .lang-select:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 5px rgba(244, 162, 97, 0.5);
+    }
+
+    .chat-box::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .chat-box::-webkit-scrollbar-track {
+        background: #e0e0e0;
+    }
+
+    .chat-box::-webkit-scrollbar-thumb {
+        background: var(--accent-color);
+        border-radius: 10px;
+    }
+
+    @media (max-width: 992px) {
+        .main-content {
+            flex-direction: column;
+        }
+        .chat-container {
+            width: 100%; /* Full width on smaller screens */
+            min-width: unset; /* Remove min-width constraint */
+            max-width: unset; /* Remove max-width constraint */
+            position: static;
+            max-height: none;
+        }
+        .guide-container, .chat-container {
+            margin-bottom: 2rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 2rem 0;
+        }
+        .guide-container, .chat-container {
+            padding: 1.5rem;
+            margin: 1rem;
+        }
+        .chat-box {
+            height: 250px;
+        }
+        .input-group {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .form-control, .btn-mic, .btn-send, .lang-select {
+            width: 100%;
+            border-radius: 8px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold" data-translate="atm_assistance_title">ATM Assistance</h1>
+        <p class="lead" data-translate="atm_assistance_subtitle">Learn how to use an ATM safely and confidently in your preferred language</p>
+    </div>
+</section>
+
+<!-- Main Content -->
+<div class="main-content">
+    <!-- Guide Container -->
+    <div class="guide-container">
+        <h3 class="text-center mb-4" data-translate="how_to_use_atm">How to Use an ATM</h3>
+        <div class="step-card">
+            <h5 data-translate="step_1_title">Step 1: Insert Your Card</h5>
+            <p data-translate="step_1_info">Insert your ATM or debit card into the card slot with the chip facing up and towards the machine. Ensure the card is inserted correctly as shown on the machine.</p>
+        </div>
+        <div class="step-card">
+            <h5 data-translate="step_2_title">Step 2: Select Language</h5>
+            <p data-translate="step_2_info">Choose your preferred language (e.g., English, Hindi, Kannada) from the options displayed on the screen for easier navigation.</p>
+        </div>
+        <div class="step-card">
+            <h5 data-translate="step_3_title">Step 3: Enter PIN</h5>
+            <p data-translate="step_3_info">Enter your 4-digit PIN using the keypad. Cover the keypad with your hand to keep your PIN private and secure.</p>
+        </div>
+        <div class="step-card">
+            <h5 data-translate="step_4_title">Step 4: Choose Transaction</h5>
+            <p data-translate="step_4_info">Select the desired transaction, such as Cash Withdrawal, Balance Enquiry, or PIN Change, from the menu on the screen.</p>
+        </div>
+        <div class="step-card">
+            <h5 data-translate="step_5_title">Step 5: Complete Transaction</h5>
+            <p data-translate="step_5_info">For cash withdrawal, enter the amount and collect your cash. Take your card and receipt (if selected) before leaving the ATM.</p>
+        </div>
+
+        <!-- FAQ Section -->
+        <div class="faq-section">
+            <h4 class="text-center mb-4" data-translate="faq_title">Frequently Asked Questions</h4>
+            <div class="faq-item">
+                <h6 data-translate="faq_1_question">What should I do if my card gets stuck in the ATM?</h6>
+                <p data-translate="faq_1_answer">Do not try to force the card out. Contact the bank’s helpline number displayed on the ATM or visit the nearest branch immediately to report the issue.</p>
+            </div>
+            <div class="faq-item">
+                <h6 data-translate="faq_2_question">What if I forget my PIN?</h6>
+                <p data-translate="faq_2_answer">Visit your bank branch or use the bank’s mobile app or website to reset your PIN. You may need to verify your identity with documents like Aadhaar or PAN.</p>
+            </div>
+            <div class="faq-item">
+                <h6 data-translate="faq_3_question">Is it safe to use an ATM at night?</h6>
+                <p data-translate="faq_3_answer">Use ATMs in well-lit, secure locations. Avoid isolated ATMs at night and ensure no one is watching you enter your PIN.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2 data-translate="chatbot_header">ATM Assistant</h2>
+        </div>
+        <div class="chat-box" id="chat-box">
+            {% for message in chat_history %}
+                {% if message.role == 'user' %}
+                    <div class="message user-message">{{ message.parts[0].text }}</div>
+                {% else %}
+                    <div class="message bot-message">{{ message.parts[0].text | safe }}</div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        <div class="input-group">
+            <button class="btn btn-mic" id="mic-btn"><i class="fas fa-microphone"></i></button>
+            <input type="text" id="user-input" class="form-control" data-translate="chatbot_placeholder" placeholder="Ask about ATM usage...">
+            <button class="btn btn-send" id="send-btn"><i class="fas fa-paper-plane"></i></button>
+            <select class="lang-select" id="lang-select">
+                <option value="en-US" data-header="ATM Assistant" data-placeholder="Ask about ATM usage...">English</option>
+                <option value="hi-IN" data-header="एटीएम सहायक" data-placeholder="एटीएम उपयोग के बारे में पूछें...">Hindi</option>
+                <option value="kn-IN" data-header="ಎಟಿಎಂ ಸಹಾಯಕ" data-placeholder="ಎಟಿಎಂ ಬಳಕೆಯ ಬಗ್ಗೆ ಕೇಳಿ...">Kannada</option>
+                <option value="ta-IN" data-header="ஏடிஎம் உதவியாளர்" data-placeholder="ஏடிஎம் பயன்பாடு பற்றி கேளுங்கள்...">Tamil</option>
+                <option value="te-IN" data-header="ఏటీఎం సహాయకుడు" data-placeholder="ఏటీఎం వినియోగం గురించి అడగండి...">Telugu</option>
+            </select>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Translations for ATM Assistance UI
+    translations.en = {
+        ...translations.en,
+        atm_assistance_title: "ATM Assistance",
+        atm_assistance_subtitle: "Learn how to use an ATM safely and confidently in your preferred language",
+        why_use_atm_guide: "Why use our ATM Assistance?",
+        atm_guide_info: "Our ATM Assistance guide provides simple, step-by-step instructions tailored for rural India to help you use ATMs for cash withdrawals, balance checks, and more. Available in English, Hindi, Kannada, Tamil, and Telugu.",
+        how_to_use_atm: "How to Use an ATM",
+        step_1_title: "Step 1: Insert Your Card",
+        step_1_info: "Insert your ATM or debit card into the card slot with the chip facing up and towards the machine. Ensure the card is inserted correctly as shown on the machine.",
+        step_2_title: "Step 2: Select Language",
+        step_2_info: "Choose your preferred language (e.g., English, Hindi, Kannada) from the options displayed on the screen for easier navigation.",
+        step_3_title: "Step 3: Enter PIN",
+        step_3_info: "Enter your 4-digit PIN using the keypad. Cover the keypad with your hand to keep your PIN private and secure.",
+        step_4_title: "Step 4: Choose Transaction",
+        step_4_info: "Select the desired transaction, such as Cash Withdrawal, Balance Enquiry, or PIN Change, from the menu on the screen.",
+        step_5_title: "Step 5: Complete Transaction",
+        step_5_info: "For cash withdrawal, enter the amount and collect your cash. Take your card and receipt (if selected) before leaving the ATM.",
+        faq_title: "Frequently Asked Questions",
+        faq_1_question: "What should I do if my card gets stuck in the ATM?",
+        faq_1_answer: "Do not try to force the card out. Contact the bank’s helpline number displayed on the ATM or visit the nearest branch immediately to report the issue.",
+        faq_2_question: "What if I forget my PIN?",
+        faq_2_answer: "Visit your bank branch or use the bank’s mobile app or website to reset your PIN. You may need to verify your identity with documents like Aadhaar or PAN.",
+        faq_3_question: "Is it safe to use an ATM at night?",
+        faq_3_answer: "Use ATMs in well-lit, secure locations. Avoid isolated ATMs at night and ensure no one is watching you enter your PIN.",
+        chatbot_header: "ATM Assistant",
+        chatbot_placeholder: "Ask about ATM usage...",
+        voice_not_supported: "Voice input is not supported in this browser.",
+        voice_error: "Error with voice input. Please try again."
+    };
+
+    translations.hi = {
+        ...translations.hi,
+        atm_assistance_title: "एटीएम सहायता",
+        atm_assistance_subtitle: "अपनी पसंदीदा भाषा में एटीएम का उपयोग सुरक्षित और आत्मविश्वास के साथ सीखें",
+        why_use_atm_guide: "हमारी एटीएम सहायता क्यों उपयोग करें?",
+        atm_guide_info: "हमारा एटीएम सहायता गाइड ग्रामीण भारत के लिए सरल, चरण-दर-चरण निर्देश प्रदान करता है ताकि आप नकदी निकासी, बैलेंस चेक और अन्य के लिए एटीएम का उपयोग कर सकें। अंग्रेजी, हिंदी, कन्नड़, तमिल और तेलुगु में उपलब्ध।",
+        how_to_use_atm: "एटीएम का उपयोग कैसे करें",
+        step_1_title: "चरण 1: अपना कार्ड डालें",
+        step_1_info: "अपना एटीएम या डेबिट कार्ड कार्ड स्लॉट में डालें, जिसमें चिप ऊपर और मशीन की ओर हो। सुनिश्चित करें कि कार्ड मशीन पर दिखाए गए तरीके से सही ढंग से डाला गया है।",
+        step_2_title: "चरण 2: भाषा चुनें",
+        step_2_info: "स्क्रीन पर प्रदर्शित विकल्पों में से अपनी पसंदीदा भाषा (जैसे, अंग्रेजी, हिंदी, कन्नड़) चुनें ताकि नेविगेशन आसान हो।",
+        step_3_title: "चरण 3: पिन दर्ज करें",
+        step_3_info: "कीपैड का उपयोग करके अपना 4-अंकीय पिन दर्ज करें। अपने पिन को निजी और सुरक्षित रखने के लिए कीपैड को अपने हाथ से ढकें।",
+        step_4_title: "चरण 4: लेनदेन चुनें",
+        step_4_info: "स्क्रीन पर मेनू से वांछित लेनदेन चुनें, जैसे नकदी निकासी, बैलेंस पूछताछ, या पिन बदलना।",
+        step_5_title: "चरण 5: लेनदेन पूरा करें",
+        step_5_info: "नकदी निकासी के लिए, राशि दर्ज करें और अपनी नकदी लें। एटीएम छोड़ने से पहले अपना कार्ड और रसीद (यदि चुना गया हो) लें।",
+        faq_title: "अक्सर पूछे जाने वाले प्रश्न",
+        faq_1_question: "यदि मेरा कार्ड एटीएम में फंस जाए तो मुझे क्या करना चाहिए?",
+        faq_1_answer: "कार्ड को जबरदस्ती निकालने की कोशिश न करें। एटीएम पर प्रदर्शित बैंक के हेल्पलाइन नंबर पर संपर्क करें या तुरंत समस्या की रिपोर्ट करने के लिए निकटतम शाखा में जाएं।",
+        faq_2_question: "यदि मैं अपना पिन भूल जाऊं तो क्या होगा?",
+        faq_2_answer: "अपनी बैंक शाखा में जाएं या बैंक के मोबाइल ऐप या वेबसाइट का उपयोग करके अपना पिन रीसेट करें। आपको आधार या पैन जैसे दस्तावेजों के साथ अपनी पहचान सत्यापित करने की आवश्यकता हो सकती है।",
+        faq_3_question: "क्या रात में एटीएम का उपयोग करना सुरक्षित है?",
+        faq_3_answer: "अच्छी रोशनी वाले, सुरक्षित स्थानों पर एटीएम का उपयोग करें। रात में एकांत एटीएम से बचें और सुनिश्चित करें कि कोई भी आपका पिन दर्ज करते समय आपको न देखे।",
+        chatbot_header: "एटीएम सहायक",
+        chatbot_placeholder: "एटीएम उपयोग के बारे में पूछें...",
+        voice_not_supported: "इस ब्राउज़र में वॉयस इनपुट समर्थित नहीं है।",
+        voice_error: "वॉयस इनपुट में त्रुटि। कृपया पुनः प्रयास करें।"
+    };
+
+    translations.kn = {
+        ...translations.kn,
+        atm_assistance_title: "ಎಟಿಎಂ ಸಹಾಯ",
+        atm_assistance_subtitle: "ನಿಮ್ಮ ಆದ್ಯತೆಯ ಭಾಷೆಯಲ್ಲಿ ಎಟಿಎಂ ಅನ್ನು ಸುರಕ್ಷಿತವಾಗಿ ಮತ್ತು ಆತ್ಮವಿಶ್ವಾಸದಿಂದ ಬಳಸಲು ಕಲಿಯಿರಿ",
+        why_use_atm_guide: "ನಮ್ಮ ಎಟಿಎಂ ಸಹಾಯವನ್ನು ಏಕೆ ಬಳಸಬೇಕು?",
+        atm_guide_info: "ನಮ್ಮ ಎಟಿಎಂ ಸಹಾಯ ಮಾರ್ಗದರ್ಶಿ ಗ್ರಾಮೀಣ ಭಾರತಕ್ಕಾಗಿ ಸರಳ, ಹಂತ-ಹಂತದ ಸೂಚನೆಗಳನ್ನು ಒದಗಿಸುತ್ತದೆ, ಇದರಿಂದ ನೀವು ನಗದು ಹಿಂಪಡೆಯುವಿಕೆ, ಬ್ಯಾಲೆನ್ಸ್ ಚೆಕ್ ಮತ್ತು ಇನ್ನಷ್ಟು ಕಾರ್ಯಗಳಿಗೆ ಎಟಿಎಂ ಬಳಸಬಹುದು. ಇಂಗ್ಲಿಷ್, ಹಿಂದಿ, ಕನ್ನಡ, ತಮಿಳು ಮತ್ತು ತೆಲುಗಿನಲ್ಲಿ ಲಭ್ಯವಿದೆ.",
+        how_to_use_atm: "ಎಟಿಎಂ ಬಳಸುವುದು ಹೇಗೆ",
+        step_1_title: "ಹಂತ 1: ನಿಮ್ಮ ಕಾರ್ಡ್ ಅನ್ನು ಸೇರಿಸಿ",
+        step_1_info: "ನಿಮ್ಮ ಎಟಿಎಂ ಅಥವಾ ಡೆಬಿಟ್ ಕಾರ್ಡ್ ಅನ್ನು ಕಾರ್ಡ್ ಸ್ಲಾಟ್‌ಗೆ ಸೇರಿಸಿ, ಚಿಪ್ ಮೇಲಕ್ಕೆ ಮತ್ತು ಯಂತ್ರದ ಕಡೆಗೆ ಇರಲಿ. ಕಾರ್ಡ್ ಯಂತ್ರದಲ್ಲಿ ತೋರಿಸಿದಂತೆ ಸರಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ ಎಂದು ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಿ.",
+        step_2_title: "ಹಂತ 2: ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+        step_2_info: "ಸ್ಕ್ರೀನ್‌ನಲ್ಲಿ ಪ್ರದರ್ಶಿತವಾಗಿರುವ ಆಯ್ಕೆಗಳಿಂದ ನಿಮ್ಮ ಆದ್ಯತೆಯ ಭಾಷೆಯನ್ನು (ಉದಾ., ಇಂಗ್ಲಿಷ್, ಹಿಂದಿ, ಕನ್ನಡ) ಆಯ್ಕೆಮಾಡಿ, ಇದರಿಂದ ನ್ಯಾವಿಗೇಷನ್ ಸುಲಭವಾಗುತ್ತದೆ.",
+        step_3_title: "ಹಂತ 3: ಪಿನ್ ನಮೂದಿಸಿ",
+        step_3_info: "ಕೀಪ್ಯಾಡ್ ಬಳಸಿ ನಿಮ್ಮ 4-ಅಂಕಿಯ ಪಿನ್ ನಮೂದಿಸಿ. ನಿಮ್ಮ ಪಿನ್ ಖಾಸಗಿಯಾಗಿರಲು ಮತ್ತು ಸುರಕ್ಷಿತವಾಗಿರಲು ಕೀಪ್ಯಾಡ್ ಅನ್ನು ನಿಮ್ಮ ಕೈಯಿಂದ ಮುಚ್ಚಿಕೊಳ್ಳಿ.",
+        step_4_title: "ಹಂತ 4: ವಹಿವಾಟು ಆಯ್ಕೆಮಾಡಿ",
+        step_4_info: "ಸ್ಕ್ರೀನ್‌ನ ಮೆನುವಿನಿಂದ ಬಯಸಿದ ವಹಿವಾಟನ್ನು ಆಯ್ಕೆಮಾಡಿ, ಉದಾಹರಣೆಗೆ ನಗದು ಹಿಂಪಡೆಯುವಿಕೆ, ಬ್ಯಾಲೆನ್ಸ್ ವಿಚಾರಣೆ, ಅಥವಾ ಪಿನ್ ಬದಲಾವಣೆ.",
+        step_5_title: "ಹಂತ 5: ವಹಿವಾಟು ಪೂರ್ಣಗೊಳಿಸಿ",
+        step_5_info: "ನಗದು ಹಿಂಪಡೆಯುವಿಕೆಗಾಗಿ, ಮೊತ್ತವನ್ನು ನಮೂದಿಸಿ ಮತ್ತು ನಿಮ್ಮ ನಗದನ್ನು ಸಂಗ್ರಹಿಸಿ. ಎಟಿಎಂ ತೊರೆಯುವ ಮೊದಲು ನಿಮ್ಮ ಕಾರ್ಡ್ ಮತ್ತು ರಸೀದಿಯನ್ನು (ಆಯ್ಕೆಮಾಡಿದರೆ) ತೆಗೆದುಕೊಳ್ಳಿ.",
+        faq_title: "ಪದೇ ಪದೇ ಕೇಳಲಾಗುವ ಪ್ರಶ್ನೆಗಳು",
+        faq_1_question: "ನನ್ನ ಕಾರ್ಡ್ ಎಟಿಎಂನಲ್ಲಿ ಸಿಲುಕಿದರೆ ನಾನು ಏನು ಮಾಡಬೇಕು?",
+        faq_1_answer: "ಕಾರ್ಡ್ ಅನ್ನು ಬಲವಂತವಾಗಿ ಹೊರತೆಗೆಯಲು ಪ್ರಯತ್ನಿಸಬೇಡಿ. ಎಟಿಎಂನಲ್ಲಿ ಪ್ರದರ್ಶಿತವಾಗಿರುವ ಬ್ಯಾಂಕ್‌ನ ಹೆಲ್ಪ್‌ಲೈನ್ ಸಂಖ್ಯೆಗೆ ಸಂಪರ್ಕಿಸಿ ಅಥವಾ ಸಮಸ್ಯೆಯನ್ನು ವರದಿ ಮಾಡಲು ತಕ್ಷಣವೇ ಹತ್ತಿರದ ಶಾಖೆಗೆ ಭೇಟಿ ನೀಡಿ.",
+        faq_2_question: "ನಾನು ನನ್ನ ಪಿನ್ ಮರೆತರೆ ಏನಾಗುತ್ತದೆ?",
+        faq_2_answer: "ನಿಮ್ಮ ಬ್ಯಾಂಕ್ ಶಾಖೆಗೆ ಭೇಟಿ ನೀಡಿ ಅಥವಾ ಬ್ಯಾಂಕ್‌ನ ಮೊಬೈಲ್ ಆಪ್ ಅಥವಾ ವೆಬ್‌ಸೈಟ್ ಬಳಸಿ ನಿಮ್ಮ ಪಿನ್ ರೀಸೆಟ್ ಮಾಡಿ. ಆಧಾರ್ ಅಥವಾ ಪ್ಯಾನ್‌ನಂತಹ ದಾಖಲೆಗಳೊಂದಿಗೆ ನಿಮ್ಮ ಗುರುತನ್ನು ಸತ್ಯಾಪನೆ ಮಾಡಬೇಕಾಗಬಹುದು.",
+        faq_3_question: "ರಾತ್ರಿಯಲ್ಲಿ ಎಟಿಎಂ ಬಳಸುವುದು ಸುರಕ್ಷಿತವೇ?",
+        faq_3_answer: "ಚೆನ್ನಾಗಿ ಬೆಳಗಿರುವ, ಸುರಕ್ಷಿತ ಸ್ಥಳಗಳಲ್ಲಿ ಎಟಿಎಂ ಬಳಸಿ. ರಾತ್ರಿಯಲ್ಲಿ ಒಂಟಿಯಾದ ಎಟಿಎಂಗಳನ್ನು ತಪ್ಪಿಸಿ ಮತ್ತು ನೀವು ಪಿನ್ ನಮೂದಿಸುವಾಗ ಯಾರೂ ನಿಮ್ಮನ್ನು ನೋಡದಂತೆ ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಿ.",
+        chatbot_header: "ಎಟಿಎಂ ಸಹಾಯಕ",
+        chatbot_placeholder: "ಎಟಿಎಂ ಬಳಕೆಯ ಬಗ್ಗೆ ಕೇಳಿ...",
+        voice_not_supported: "ಈ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಧ್ವನಿ ಒಳಸೇರಿಕೆಯನ್ನು ಬೆಂಬಲಿಸಲಾಗುವುದಿಲ್ಲ।",
+        voice_error: "ಧ್ವನಿ ಒಳಸೇರಿಕೆಯಲ್ಲಿ ದೋಷ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ।"
+    };
+
+    translations.ta = {
+        ...translations.ta,
+        atm_assistance_title: "ஏடிஎம் உதவி",
+        atm_assistance_subtitle: "உங்களுக்கு விருப்பமான மொழியில் ஏடிஎம்மை பாதுகாப்பாகவும் நம்பிக்கையுடனும் பயன்படுத்த கற்றுக்கொள்ளுங்கள்",
+        why_use_atm_guide: "எங்கள் ஏடிஎம் உதவியை ஏன் பயன்படுத்த வேண்டும்?",
+        atm_guide_info: "எங்கள் ஏடிஎம் உதவி வழிகாட்டி கிராமப்புற இந்தியாவிற்காக எளிய, படிப்படியான வழிமுறைகளை வழங்குகிறது, இதன்மூலம் நீங்கள் பணம் எடுப்பது, இருப்பு சரிபார்ப்பது மற்றும் பலவற்றிற்கு ஏடிஎம்மை பயன்படுத்தலாம். ஆங்கிலம், இந்தி, கன்னடம், தமிழ் மற்றும் தெலுங்கில் கிடைக்கிறது.",
+        how_to_use_atm: "ஏடிஎம்மை எவ்வாறு பயன்படுத்துவது",
+        step_1_title: "படி 1: உங்கள் அட்டையை செருகவும்",
+        step_1_info: "உங்கள் ஏடிஎம் அல்லது டெபிட் கார்டை கார்டு ஸ்லாட்டில் செருகவும், சிப் மேலே மற்றும் இயந்திரத்தை நோக்கி இருக்க வேண்டும். இயந்திரத்தில் காட்டப்பட்டபடி கார்டு சரியாக செருகப்பட்டுள்ளதை உறுதி செய்யவும்.",
+        step_2_title: "படி 2: மொழியை தேர்ந்தெடுக்கவும்",
+        step_2_info: "திரையில் காட்டப்படும் விருப்பங்களிலிருந்து உங்களுக்கு விருப்பமான மொழியை (எ.கா., ஆங்கிலம், இந்தி, கன்னடம்) தேர்ந்தெடுக்கவும், இதனால் வழிசெலுத்தல் எளிதாக இருக்கும்.",
+        step_3_title: "படி 3: பின்னை உள்ளிடவும்",
+        step_3_info: "கீபேடைப் பயன்படுத்தி உங்கள் 4 இலக்க பின்னை உள்ளிடவும். உங்கள் பின்னை தனிப்பட்ட மற்றும் பாதுகாப்பாக வைத்திருக்க கீபேடை உங்கள் கையால் மறைக்கவும்.",
+        step_4_title: "படி 4: பரிவர்த்தனையை தேர்ந்தெடுக்கவும்",
+        step_4_info: "திரையில் உள்ள மெனுவிலிருந்து விரும்பிய பரிவர்த்தனையை தேர்ந்தெடுக்கவும், உதாரணமாக பணம் எடுப்பது, இருப்பு விசாரணை, அல்லது பின் மாற்றம்.",
+        step_5_title: "படி 5: பரிவர்த்தனையை முடிக்கவும்",
+        step_5_info: "பணம் எடுப்பதற்கு, தொகையை உள்ளிடவும் மற்றும் உங்கள் பணத்தை எடுக்கவும். ஏடிஎம்மை விட்டு வெளியேறுவதற்கு முன் உங்கள் கார்டு மற்றும் ரசீது (தேர்ந்தெடுத்திருந்தால்) எடுத்துக்கொள்ளவும்.",
+        faq_title: "அடிக்கடி கேட்கப்படும் கேள்விகள்",
+        faq_1_question: "எனது கார்டு ஏடிஎம்மில் சிக்கிக்கொண்டால் நான் என்ன செய்ய வேண்டும்?",
+        faq_1_answer: "கார்டை வலுக்கட்டாயமாக வெளியே எடுக்க முயற்சிக்க வேண்டாம். ஏடிஎம்மில் காட்டப்படும் வங்கியின் உதவி எண்ணை தொடர்பு கொள்ளவும் அல்லது உடனடியாக அருகிலுள்ள கிளைக்கு சென்று பிரச்சினையை புகாரளிக்கவும்.",
+        faq_2_question: "நான் எனது பின்னை மறந்துவிட்டால் என்ன ஆகும்?",
+        faq_2_answer: "உங்கள் வங்கி கிளைக்கு செல்லவும் அல்லது வங்கியின் மொபைல் ஆப் அல்லது வலைத்தளத்தைப் பயன்படுத்தி உங்கள் பின்னை மீட்டமைக்கவும். ஆதார் அல்லது பான் போன்ற ஆவணங்களுடன் உங்கள் அடையாளத்தை சரிபார்க்க வேண்டியிருக்கலாம்.",
+        faq_3_question: "இரவில் ஏடிஎம்மைப் பயன்படுத்துவது பாதுகாப்பானதா?",
+        faq_3_answer: "நன்கு வெளிச்சமான, பாதுகாப்பான இடங்களில் ஏடிஎம்மைப் பயன்படுத்தவும். இரவில் தனிமையான ஏடிஎம்களைத் தவிர்க்கவும் மற்றும் உங்கள் பின்னை உள்ளிடும்போது யாரும் உங்களைப் பார்க்கவில்லை என்பதை உறுதி செய்யவும்.",
+        chatbot_header: "ஏடிஎம் உதவியாளர்",
+        chatbot_placeholder: "ஏடிஎம் பயன்பாடு பற்றி கேளுங்கள்...",
+        voice_not_supported: "இந்த உலாவியில் குரல் உள்ளீடு ஆதரிக்கப்படவில்லை.",
+        voice_error: "குரல் உள்ளீட்டில் பிழை. மீண்டும் முயற்சிக்கவும்."
+    };
+
+    translations.te = {
+        ...translations.te,
+        atm_assistance_title: "ఏటీఎం సహాయం",
+        atm_assistance_subtitle: "మీకు ఇష్టమైన భాషలో ఏటీఎమ్‌ను సురక్షితంగా మరియు నమ్మకంగా ఉపయోగించడం నేర్చుకోండి",
+        why_use_atm_guide: "మా ఏటీఎం సహాయాన్ని ఎందుకు ఉపయోగించాలి?",
+        atm_guide_info: "మా ఏటీఎం సహాయ గైడ్ గ్రామీణ భారతదేశం కోసం సులభమైన, దశలవారీ సూచనలను అందిస్తుంది, తద్వారా మీరు నగదు ఉపసంహరణ, బ్యాలెన్స్ చెక్ మరియు మరిన్ని కోసం ఏటీఎమ్‌ను ఉపయోగించవచ్చు. ఇంగ్లీష్, హిందీ, కన్నడ, తమిళం మరియు తెలుగులో అందుబాటులో ఉంది.",
+        how_to_use_atm: "ఏటీఎమ్‌ను ఎలా ఉపయోగించాలి",
+        step_1_title: "దశ 1: మీ కార్డ్‌ను చొప్పించండి",
+        step_1_info: "మీ ఏటీఎం లేదా డెబిట్ కార్డ్‌ను కార్డ్ స్లాట్‌లో చొప్పించండి, చిప్ పైకి మరియు యంత్రం వైపు ఉండాలి. యంత్రంలో చూపిన విధంగా కార్డ్ సరిగ్గా చొప్పించబడిందని నిర్ధారించుకోండి.",
+        step_2_title: "దశ 2: భాషను ఎంచుకోండి",
+        step_2_info: "స్క్రీన్‌పై ప్రదర్శించబడిన ఎంపికల నుండి మీకు ఇష్టమైన భాషను (ఉదా., ఇంగ్లీష్, హిందీ, కన్నడ) ఎంచుకోండి, తద్వారా నావిగేషన్ సులభం అవుతుంది.",
+        step_3_title: "దశ 3: పిన్‌ను నమోదు చేయండి",
+        step_3_info: "కీప్యాడ్ ఉపయోగించి మీ 4-అంకెల పిన్‌ను నమోదు చేయండి. మీ పిన్‌ను ప్రైవేట్‌గా మరియు సురక్షితంగా ఉంచడానికి కీప్యాడ్‌ను మీ చేతితో కప్పండి.",
+        step_4_title: "దశ 4: లావాదేవీని ఎంచుకోండి",
+        step_4_info: "స్క్రీన్‌పై మెనూ నుండి కావలసిన లావాదేవీని ఎంచుకోండి, ఉదాహరణకు నగదు ఉపసంహరణ, బ్యాలెన్స్ విచారణ, లేదా పిన్ మార్పు.",
+        step_5_title: "దశ 5: లావాదేవీని పూర్తి చేయండి",
+        step_5_info: "నగదు ఉపసంహరణ కోసం, మొత్తాన్ని నమోదు చేసి మీ నగదును సేకరించండి. ఏటీఎం నుండి బయటకు వెళ్లే ముందు మీ కార్డ్ మరియు రసీదు (ఎంచుకున్నట్లయితే) తీసుకోండి.",
+        faq_title: "తరచుగా అడిగే ప్రశ్నలు",
+        faq_1_question: "నా కార్డ్ ఏటీఎంలో చిక్కుకుపోతే నేను ఏమి చేయాలి?",
+        faq_1_answer: "కార్డ్‌ను బలవంతంగా తీసివేయడానికి ప్రయత్నించవద్దు. ఏటీఎంపై ప్రదర్శించబడిన బ్యాంక్ హెల్ప్‌లైన్ నంబర్‌ను సంప్రదించండి లేదా సమస్యను నివేదించడానికి వెంటనే సమీప శాఖకు వెళ్లండి.",
+        faq_2_question: "నేను నా పిన్‌ను మరచిపోతే ఏమవుతుంది?",
+        faq_2_answer: "మీ బ్యాంక్ శాఖకు వెళ్లండి లేదా బ్యాంక్ మొబైల్ యాప్ లేదా వెబ్‌సైట్‌ను ఉపయోగించి మీ పిన్‌ను రీసెట్ చేయండి. ఆధార్ లేదా పాన్ వంటి డాక్యుమెంట్లతో మీ గుర్తింపును ధృవీకరించాల్సి రావచ్చు.",
+        faq_3_question: "రాత్రి సమయంలో ఏటీఎం ఉపయోగించడం సురక్షితమేనా?",
+        faq_3_answer: "బాగా వెలిగించిన, సురక్షితమైన స్థలాల్లో ఏటీఎంలను ఉపయోగించండి. రాత్రి సమయంలో ఒంటరి ఏటీఎంలను నివారించండి మరియు మీరు పిన్ నమోదు చేస్తున్నప్పుడు ఎవరూ మిమ్మల్ని చూడకుండా ఉండేలా చూసుకోండి.",
+        chatbot_header: "ఏటీఎం సహాయకుడు",
+        chatbot_placeholder: "ఏటీఎం వినియోగం గురించి అడగండి...",
+        voice_not_supported: "ఈ బ్రౌజర్‌లో వాయిస్ ఇన్‌పుట్‌కు మద్దతు లేదు.",
+        voice_error: "వాయిస్ ఇన్‌పుట్‌లో లోపం. దయచేసి మళ్లీ ప్రయత్నించండి."
+    };
+
+    // Chatbot functionality
+    document.addEventListener('DOMContentLoaded', () => {
+        const chatBox = document.getElementById('chat-box');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const micBtn = document.getElementById('mic-btn');
+        const langSelect = document.getElementById('lang-select');
+        const chatHeader = document.getElementById('chat-box').parentElement.querySelector('h2');
+        const currentLanguage = getCurrentLanguage() || 'en';
+        updateContent(currentLanguage);
+
+        // Scroll to bottom of chat box
+        function scrollToBottom() {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Format bot response into HTML
+        function formatBotResponse(content) {
+            const lines = content.split('\n').filter(line => line.trim() !== '');
+            let htmlContent = '';
+            let inList = false;
+
+            lines.forEach(line => {
+                line = line.trim();
+                if (line.match(/^\s*[\*\-]\s/)) {
+                    if (!inList) {
+                        htmlContent += '<ul>';
+                        inList = true;
+                    }
+                    const listItem = line.replace(/^\s*[\*\-]\s/, '');
+                    htmlContent += `<li>${listItem}</li>`;
+                } else {
+                    if (inList) {
+                        htmlContent += '</ul>';
+                        inList = false;
+                    }
+                    htmlContent += `<p>${line}</p>`;
+                }
+            });
+
+            if (inList) {
+                htmlContent += '</ul>';
+            }
+
+            return htmlContent;
+        }
+
+        // Add message to chat box
+        function addMessage(content, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            messageDiv.innerHTML = isUser ? content : formatBotResponse(content);
+            chatBox.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        // Update UI elements based on selected language
+        function updateUIForLanguage() {
+            const selectedOption = langSelect.options[langSelect.selectedIndex];
+            chatHeader.textContent = selectedOption.getAttribute('data-header');
+            userInput.placeholder = selectedOption.getAttribute('data-placeholder');
+            updateContent(langSelect.value.split('-')[0]);
+        }
+
+        // Handle send message
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            const language = langSelect.value;
+            if (!message) return;
+
+            addMessage(message, true);
+            userInput.value = '';
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message, language, context: 'ATM assistance' })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    addMessage(data.response, false);
+                } else {
+                    addMessage(translations[currentLanguage].error_api || 'Error: ' + (data.error || 'Something went wrong'), false);
+                }
+            } catch (error) {
+                addMessage(translations[currentLanguage].error_api || 'Error: Failed to connect to the server', false);
+            }
+        }
+
+        // Voice Input Functionality
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.lang = langSelect.value;
+            langSelect.addEventListener('change', () => {
+                recognition.lang = langSelect.value;
+                updateUIForLanguage();
+            });
+
+            recognition.onstart = () => {
+                micBtn.classList.add('active');
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                userInput.value = transcript;
+                micBtn.classList.remove('active');
+            };
+
+            recognition.onend = () => {
+                micBtn.classList.remove('active');
+            };
+
+            recognition.onerror = (event) => {
+                addMessage(translations[currentLanguage].voice_error || 'Error with voice input: ' + event.error, false);
+                micBtn.classList.remove('active');
+            };
+
+            micBtn.addEventListener('click', () => {
+                if (!micBtn.classList.contains('active')) {
+                    recognition.start();
+                } else {
+                    recognition.stop();
+                }
+            });
+        } else {
+            micBtn.disabled = true;
+            micBtn.title = translations[currentLanguage].voice_not_supported || 'Voice input is not supported in this browser.';
+            addMessage(translations[currentLanguage].voice_not_supported || 'Voice input is not supported in this browser.', false);
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        updateUIForLanguage();
+        scrollToBottom();
+    });
+</script>
+{% endblock %}

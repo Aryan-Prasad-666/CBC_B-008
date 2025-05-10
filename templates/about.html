@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+
+{% block title %}
+<span data-translate="about_us_title">Vittam.ai - About Us</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(rgba(30, 95, 116, 0.8), rgba(30, 95, 116, 0.9)), url('https://source.unsplash.com/random/1200x800/?rural,india,community');
+        background-size: cover;
+        background-position: center;
+        color: white;
+        padding: 4rem 0;
+        margin-bottom: 3rem;
+    }
+
+    .mission-vision-card {
+        border: none;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        margin-bottom: 2rem;
+        padding: 2rem;
+        background-color: white;
+        border-radius: 0.5rem;
+    }
+
+    .mission-vision-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .team-card {
+        border: none;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        margin-bottom: 2rem;
+        height: 100%;
+    }
+
+    .team-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .team-card img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-top-left-radius: 0.5rem;
+        border-top-right-radius: 0.5rem;
+    }
+
+    .team-card .card-body {
+        padding: 1.5rem;
+    }
+
+    .contact-section {
+        background-color: var(--light-color);
+        padding: 3rem 0;
+        margin-top: 3rem;
+        border-top: 4px solid var(--accent-color);
+    }
+
+    .info-box {
+        background-color: white;
+        border-left: 4px solid var(--accent-color);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border-radius: 0.25rem;
+    }
+
+    .section-icon {
+        font-size: 2rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 2rem 0;
+        }
+
+        .mission-vision-card {
+            padding: 1.5rem;
+        }
+
+        .team-card img {
+            height: 150px;
+        }
+
+        .contact-section {
+            padding: 2rem 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold" data-translate="about_us_title">About Vittam.ai</h1>
+        <p class="lead" data-translate="about_us_subtitle">Empowering rural India with accessible financial solutions</p>
+    </div>
+</section>
+
+<!-- Main Content -->
+<div class="container mb-5">
+    <!-- Mission and Vision -->
+    <section class="mb-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="info-box">
+                    <h5 class="mb-2" data-translate="who_we_are">Who We Are</h5>
+                    <p class="mb-0" data-translate="who_we_are_info">Vittam.ai is dedicated to bridging the financial gap for rural communities in India. We provide easy-to-use tools and resources for financial planning, loans, insurance, and business support, tailored to the needs of villagers and small-scale entrepreneurs.</p>
+                </div>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="mission-vision-card">
+                            <i class="fas fa-seedling section-icon"></i>
+                            <h4 data-translate="our_mission">Our Mission</h4>
+                            <p data-translate="mission_info">To empower rural India by providing accessible, multilingual financial tools and education, enabling sustainable growth and prosperity for every household.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mission-vision-card">
+                            <i class="fas fa-eye section-icon"></i>
+                            <h4 data-translate="our_vision">Our Vision</h4>
+                            <p data-translate="vision_info">To create a financially inclusive India where every rural citizen has the knowledge and resources to achieve financial independence and security.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Our Team -->
+    <section class="mb-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <h3 class="text-center mb-4" data-translate="our_team">Our Team</h3>
+                <p class="text-center mb-5" data-translate="team_info">Meet the dedicated individuals working to make financial empowerment a reality for rural India.</p>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="card team-card h-100">
+                            <img src="https://source.unsplash.com/random/300x200/?person,professional" alt="Team Member" class="card-img-top">
+                            <div class="card-body">
+                                <h5 class="card-title">Aryan Prasad</h5>
+                                <p class="card-text text-muted" data-translate="team_role_founder">Co-Founder</p>
+                                <p class="card-text" data-translate="team_bio_founder_aryan">Aryan co-founded Vittam.ai with a vision to empower rural communities through innovative financial solutions, leveraging his expertise in fintech and rural development.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card team-card h-100">
+                            <img src="https://source.unsplash.com/random/300x200/?person,professional" alt="Team Member" class="card-img-top">
+                            <div class="card-body">
+                                <h5 class="card-title">Lakki Kunwar</h5>
+                                <p class="card-text text-muted" data-translate="team_role_founder">Co-Founder</p>
+                                <p class="card-text" data-translate="team_bio_founder_lakki">Lakki co-founded Vittam.ai, driven by a passion for financial inclusion and a commitment to making financial resources accessible to every rural household in India.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Contact Section -->
+<section class="contact-section">
+    <div class="container">
+        <h3 class="text-center mb-4" data-translate="get_in_touch">Get in Touch</h3>
+        <p class="text-center mb-5" data-translate="contact_info">Have questions or want to learn more? Reach out to us, and let's work together to achieve your financial goals.</p>
+        <div class="row justify-content-center">
+            <div class="col-md-4 text-center">
+                <i class="fas fa-map-marker-alt fa-2x mb-3" style="color: var(--secondary-color);"></i>
+                <p data-translate="footer_address">123 Financial District, Bengaluru, Karnataka, India</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <i class="fas fa-phone fa-2x mb-3" style="color: var(--secondary-color);"></i>
+                <p data-translate="footer_phone">+91 9876543210</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <i class="fas fa-envelope fa-2x mb-3" style="color: var(--secondary-color);"></i>
+                <p><a href="mailto:support@vittam.ai" data-translate="footer_email">support@vittam.ai</a></p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Translation additions for about us page
+    translations.en = {
+        ...translations.en,
+        about_us_title: "About Vittam.ai",
+        about_us_subtitle: "Empowering rural India with accessible financial solutions",
+        who_we_are: "Who We Are",
+        who_we_are_info: "Vittam.ai is dedicated to bridging the financial gap for rural communities in India. We provide easy-to-use tools and resources for financial planning, loans, insurance, and business support, tailored to the needs of villagers and small-scale entrepreneurs.",
+        our_mission: "Our Mission",
+        mission_info: "To empower rural India by providing accessible, multilingual financial tools and education, enabling sustainable growth and prosperity for every household.",
+        our_vision: "Our Vision",
+        vision_info: "To create a financially inclusive India where every rural citizen has the knowledge and resources to achieve financial independence and security.",
+        our_team: "Our Team",
+        team_info: "Meet the dedicated individuals working to make financial empowerment a reality for rural India.",
+        team_role_founder: "Co-Founder",
+        team_bio_founder_aryan: "Aryan co-founded Vittam.ai with a vision to empower rural communities through innovative financial solutions, leveraging his expertise in fintech and rural development.",
+        team_bio_founder_lakki: "Lakki co-founded Vittam.ai, driven by a passion for financial inclusion and a commitment to making financial resources accessible to every rural household in India.",
+        get_in_touch: "Get in Touch",
+        contact_info: "Have questions or want to learn more? Reach out to us, and let's work together to achieve your financial goals."
+    };
+
+    translations.hi = {
+        ...translations.hi,
+        about_us_title: "वित्तम.एआई के बारे में",
+        about_us_subtitle: "सुलभ वित्तीय समाधानों के साथ ग्रामीण भारत को सशक्त बनाना",
+        who_we_are: "हम कौन हैं",
+        who_we_are_info: "वित्तम.एआई ग्रामीण भारत में वित्तीय अंतर को पाटने के लिए समर्पित है। हम ग्रामीणों और छोटे पैमाने के उद्यमियों की जरूरतों के अनुरूप वित्तीय नियोजन, ऋण, बीमा और व्यवसाय समर्थन के लिए उपयोग में आसान उपकरण और संसाधन प्रदान करते हैं।",
+        our_mission: "हमारा मिशन",
+        mission_info: "ग्रामीण भारत को सुलभ, बहुभाषी वित्तीय उपकरण और शिक्षा प्रदान करके सशक्त बनाना, जिससे प्रत्येक परिवार के लिए सतत विकास और समृद्धि संभव हो।",
+        our_vision: "हमारा दृष्टिकोण",
+        vision_info: "एक वित्तीय रूप से समावेशी भारत बनाना जहां प्रत्येक ग्रामीण नागरिक को वित्तीय स्वतंत्रता और सुरक्षा प्राप्त करने के लिए ज्ञान और संसाधन हों।",
+        our_team: "हमारी टीम",
+        team_info: "ग्रामीण भारत के लिए वित्तीय सशक्तिकरण को वास्तविकता बनाने के लिए काम करने वाले समर्पित व्यक्तियों से मिलें।",
+        team_role_founder: "सह-संस्थापक",
+        team_bio_founder_aryan: "आर्यन ने वित्तम.एआई की सह-स्थापना की, जिसमें ग्रामीण समुदायों को नवीन वित्तीय समाधानों के माध्यम से सशक्त बनाने का दृष्टिकोण है, और उनके पास फिनटेक और ग्रामीण विकास में विशेषज्ञता है।",
+        team_bio_founder_lakki: "लक्की ने वित्तम.एआई की सह-स्थापना की, जो वित्तीय समावेशन के प्रति जुनून और भारत के प्रत्येक ग्रामीण परिवार के लिए वित्तीय संसाधनों को सुलभ बनाने की प्रतिबद्धता से प्रेरित है।",
+        get_in_touch: "संपर्क करें",
+        contact_info: "प्रश्न हैं या अधिक जानना चाहते हैं? हमसे संपर्क करें, और आइए आपके वित्तीय लक्ष्यों को प्राप्त करने के लिए मिलकर काम करें।"
+    };
+
+    translations.kn = {
+        ...translations.kn,
+        about_us_title: "ವಿತ್ತಮ್.ಎಐ ಬಗ್ಗೆ",
+        about_us_subtitle: "ಸುಲಭವಾದ ಆರ್ಥಿಕ ಪರಿಹಾರಗಳೊಂದಿಗೆ ಗ್ರಾಮೀಣ ಭಾರತವನ್ನು ಸಬಲೀಕರಣಗೊಳಿಸುವುದು",
+        who_we_are: "ನಾವು ಯಾರು",
+        who_we_are_info: "ವಿತ್ತಮ್.ಎಐ ಭಾರತದ ಗ್ರಾಮೀಣ ಸಮುದಾಯಗಳಿಗೆ ಆರ್ಥಿಕ ಅಂತರವನ್ನು ಕಡಿಮೆ ಮಾಡಲು ಸಮರ್ಪಿತವಾಗಿದೆ. ಗ್ರಾಮವಾಸಿಗಳು ಮತ್ತು ಸಣ್ಣ ಪ್ರಮಾಣದ ಉದ್ಯಮಿಗಳ ಅಗತ್ಯಗಳಿಗೆ ತಕ್ಕಂತೆ ಆರ್ಥಿಕ ಯೋಜನೆ, ಸಾಲ, ವಿಮೆ ಮತ್ತು ವ್ಯಾಪಾರ ಬೆಂಬಲಕ್ಕಾಗಿ ಬಳಕೆದಾರ ಸ್ನೇಹಿಯಾದ ಸಾಧನಗಳು ಮತ್ತು ಸಂಪನ್ಮೂಲಗಳನ್ನು ನಾವು ಒದಗಿಸುತ್ತೇವೆ।",
+        our_mission: "ನಮ್ಮ ಧ್ಯೇಯ",
+        mission_info: "ಪ್ರತಿಯೊಂದು ಕುಟುಂಬಕ್ಕೂ ಸುಸ್ಥಿರ ಬೆಳವಣಿಗೆ ಮತ್ತು ಸಮೃದ್ಧಿಯನ್ನು ಸಾಧ್ಯವಾಗಿಸುವ, ಸುಲಭವಾದ, ಬಹುಭಾಷಾ ಆರ್ಥಿಕ ಸಾಧನಗಳು ಮತ್ತು ಶಿಕ್ಷಣವನ್ನು ಒದಗಿಸುವ ಮೂಲಕ ಗ್ರಾಮೀಣ ಭಾರತವನ್ನು ಸಬಲೀಕರಣಗೊಳಿಸುವುದು.",
+        our_vision: "ನಮ್ಮ ದೃಷ್ಟಿ",
+        vision_info: "ಪ್ರತಿಯೊಬ್ಬ ಗ್ರಾಮೀಣ ನಾಗರಿಕನಿಗೆ ಆರ್ಥಿಕ ಸ್ವಾತಂತ್ರ್ಯ ಮತ್ತು ಭದ್ರತೆಯನ್ನು ಸಾಧಿಸಲು ಜ್ಞಾನ ಮತ್ತು ಸಂಪನ್ಮೂಲಗಳನ್ನು ಹೊಂದಿರುವ ಆರ್ಥಿಕವಾಗಿ ಸಮಾವೇಶಕ ಭಾರತವನ್ನು ಸೃಷ್ಟಿಸುವುದು.",
+        our_team: "ನಮ್ಮ ತಂಡ",
+        team_info: "ಗ್ರಾಮೀಣ ಭಾರತಕ್ಕೆ ಆರ್ಥಿಕ ಸಬಲೀಕರಣವನ್ನು ಯಾಥಾರ್ಥ್ಯವಾಗಿಸಲು ಕೆಲಸ ಮಾಡುತ್ತಿರುವ ಸಮರ್ಪಿತ ವ್ಯಕ್ತಿಗಳನ್ನು ಭೇಟಿಯಾಗಿ.",
+        team_role_founder: "ಸಹ-ಸಂಸ್ಥಾಪಕ",
+        team_bio_founder_aryan: "ಆರ್ಯನ್ ವಿತ್ತಮ್.ಎಐಯನ್ನು ಸಹ-ಸ್ಥಾಪಿಸಿದರು, ಗ್ರಾಮೀಣ ಸಮುದಾಯಗಳನ್ನು ನವೀನ ಆರ್ಥಿಕ ಪರಿಹಾರಗಳ ಮೂಲಕ ಸಬಲೀಕರಣಗೊಳಿಸುವ ದೃಷ್ಟಿಯೊಂದಿಗೆ, ಫಿನ್‌ಟೆಕ್ ಮತ್ತು ಗ್ರಾಮೀಣ ಅಭಿವೃದ್ಧಿಯಲ್ಲಿ ತಮ್ಮ ಪರಿಣತಿಯನ್ನು ಬಳಸಿಕೊಂಡರು.",
+        team_bio_founder_lakki: "ಲಕ್ಕಿ ವಿತ್ತಮ್.ಎಐಯನ್ನು ಸಹ-ಸ್ಥಾಪಿಸಿದರು, ಆರ್ಥಿಕ ಸಮಾವೇಶಕ್ಕಾಗಿ ಒಂದು ಉತ್ಸಾಹದಿಂದ ಮತ್ತು ಭಾರತದ ಪ್ರತಿಯೊಂದು ಗ್ರಾಮೀಣ ಕುಟುಂಬಕ್ಕೆ ಆರ್ಥಿಕ ಸಂಪನ್ಮೂಲಗಳನ್ನು ಸುಲಭವಾಗಿ ಲಭ್ಯವಾಗಿಸುವ ಬದ್ಧತೆಯಿಂದ ಪ್ರೇರಿತರಾದರು.",
+        get_in_touch: "ಸಂಪರ್ಕದಲ್ಲಿರಿ",
+        contact_info: "ಪ್ರಶ್ನೆಗಳಿವೆಯೇ ಅಥವಾ ಇನ್ನಷ್ಟು ತಿಳಿಯಲು ಬಯಸುವಿರಾ? ನಮ್ಮನ್ನು ಸಂಪರ್ಕಿಸಿ, ಮತ್ತು ನಿಮ್ಮ ಆರ್ಥಿಕ ಗುರಿಗಳನ್ನು ಸಾಧಿಸಲು ಒಟ್ಟಿಗೆ ಕೆಲಸ ಮಾಡೋಣ."
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const currentLang = getCurrentLanguage();
+        updateContent(currentLang);
+    });
+</script>
+{% endblock %}
