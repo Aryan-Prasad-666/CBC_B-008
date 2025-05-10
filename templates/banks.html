@@ -1,0 +1,416 @@
+{% extends "base.html" %}
+
+{% block title %}Vittam.ai - Find Nearby Banks{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(rgba(30, 95, 116, 0.8), rgba(30, 95, 116, 0.9)), url('https://source.unsplash.com/random/1200x800/?rural,bank');
+        background-size: cover;
+        background-position: center;
+        color: white;
+        padding: 4rem 0;
+        margin-bottom: 3rem;
+    }
+    
+    .search-form {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .bank-card {
+        border: none;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        margin-bottom: 1.5rem;
+    }
+    
+    .bank-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .bank-icon {
+        font-size: 2rem;
+        color: var(--primary-color);
+    }
+    
+    #map {
+        height: 400px;
+        width: 100%;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .results-container {
+        margin-top: 2rem;
+    }
+    
+    .no-results {
+        text-align: center;
+        padding: 3rem;
+    }
+    
+    .loading-container {
+        display: none;
+        text-align: center;
+        padding: 2rem;
+    }
+    
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+        color: var(--primary-color);
+    }
+    
+    .info-box {
+        background-color: var(--light-color);
+        border-left: 4px solid var(--accent-color);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border-radius: 0.25rem;
+    }
+    
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 2rem 0;
+        }
+        
+        .search-form {
+            padding: 1rem;
+        }
+        
+        #map {
+            height: 300px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold" data-translate="bank_finder_title">Bank Finder</h1>
+        <p class="lead" data-translate="bank_finder_subtitle">Find banks near your location for all your financial needs</p>
+    </div>
+</section>
+
+<!-- Main Content -->
+<div class="container mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Info Box -->
+            <div class="info-box">
+                <h5 class="mb-2" data-translate="why_use_bank_finder">Why use our Bank Finder?</h5>
+                <p class="mb-0" data-translate="bank_finder_info">Our Bank Finder helps you locate nearby banks so you can easily access financial services. Find the closest branch for opening accounts, applying for loans, or getting financial advice. Enter your location details below to get started.</p>
+            </div>
+            
+            <!-- Search Form -->
+            <div class="search-form mb-4">
+                <h3 class="text-center mb-4" data-translate="enter_location">Enter Your Location</h3>
+                <form id="bankSearchForm">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="location" class="form-label" data-translate="village_city">Village/City</label>
+                            <input type="text" class="form-control" id="location" placeholder="e.g., Shivamogga" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="district" class="form-label" data-translate="district">District</label>
+                            <input type="text" class="form-control" id="district" placeholder="e.g., Shivamogga" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="state" class="form-label" data-translate="state">State</label>
+                            <input type="text" class="form-control" id="state" placeholder="e.g., Karnataka" required>
+                        </div>
+                        <div class="col-12 text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg px-5" data-translate="find_banks">Find Banks</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Loading Indicator -->
+            <div id="loadingContainer" class="loading-container">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3" data-translate="searching_banks">Searching for banks in your area...</p>
+            </div>
+            
+            <!-- Results Container -->
+            <div id="resultsContainer" class="results-container" style="display: none;">
+                <h3 class="mb-4 text-center" data-translate="banks_near_you">Banks Near You</h3>
+                
+                <!-- Map Container -->
+                <div id="map" class="mb-4"></div>
+                
+                <!-- Bank List -->
+                <div id="bankList" class="row mt-4"></div>
+            </div>
+            
+            <!-- No Results Container -->
+            <div id="noResultsContainer" class="no-results" style="display: none;">
+                <i class="fas fa-search fa-3x mb-3 text-muted"></i>
+                <h4 data-translate="no_banks_found">No banks found in this location</h4>
+                <p data-translate="try_different_location">Please try a different location or check your spelling.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Google Maps API -->
+<script defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_API_KEY&callback=initMap"></script>
+
+<script>
+    // Translation additions for bank finder page
+    translations.en = {
+        ...translations.en,
+        bank_finder_title: "Bank Finder",
+        bank_finder_subtitle: "Find banks near your location for all your financial needs",
+        why_use_bank_finder: "Why use our Bank Finder?",
+        bank_finder_info: "Our Bank Finder helps you locate nearby banks so you can easily access financial services. Find the closest branch for opening accounts, applying for loans, or getting financial advice. Enter your location details below to get started.",
+        enter_location: "Enter Your Location",
+        village_city: "Village/City",
+        district: "District",
+        state: "State",
+        find_banks: "Find Banks",
+        searching_banks: "Searching for banks in your area...",
+        banks_near_you: "Banks Near You",
+        no_banks_found: "No banks found in this location",
+        try_different_location: "Please try a different location or check your spelling.",
+        view_on_map: "View on Map",
+        get_directions: "Get Directions",
+        distance: "Distance",
+        banks_found: "banks found near your location"
+    };
+    
+    translations.hi = {
+        ...translations.hi,
+        bank_finder_title: "बैंक खोजक",
+        bank_finder_subtitle: "अपनी सभी वित्तीय जरूरतों के लिए अपने स्थान के पास बैंक खोजें",
+        why_use_bank_finder: "हमारा बैंक खोजक क्यों उपयोग करें?",
+        bank_finder_info: "हमारा बैंक खोजक आपके निकटतम बैंकों को खोजने में मदद करता है ताकि आप आसानी से वित्तीय सेवाओं का उपयोग कर सकें। खाता खोलने, ऋण के लिए आवेदन करने या वित्तीय सलाह लेने के लिए निकटतम शाखा खोजें। शुरू करने के लिए नीचे अपने स्थान का विवरण दर्ज करें।",
+        enter_location: "अपना स्थान दर्ज करें",
+        village_city: "गांव/शहर",
+        district: "जिला",
+        state: "राज्य",
+        find_banks: "बैंक खोजें",
+        searching_banks: "आपके क्षेत्र में बैंकों की खोज कर रहे हैं...",
+        banks_near_you: "आपके पास के बैंक",
+        no_banks_found: "इस स्थान पर कोई बैंक नहीं मिला",
+        try_different_location: "कृपया अलग स्थान आज़माएं या अपनी वर्तनी जांचें।",
+        view_on_map: "नक्शे पर देखें",
+        get_directions: "दिशा-निर्देश प्राप्त करें",
+        distance: "दूरी",
+        banks_found: "बैंक आपके स्थान के पास पाए गए"
+    };
+    
+    translations.kn = {
+        ...translations.kn,
+        bank_finder_title: "ಬ್ಯಾಂಕ್ ಹುಡುಕಾಟ",
+        bank_finder_subtitle: "ನಿಮ್ಮ ಎಲ್ಲಾ ಹಣಕಾಸು ಅಗತ್ಯಗಳಿಗಾಗಿ ನಿಮ್ಮ ಸ್ಥಳದ ಹತ್ತಿರದ ಬ್ಯಾಂಕುಗಳನ್ನು ಹುಡುಕಿ",
+        why_use_bank_finder: "ನಮ್ಮ ಬ್ಯಾಂಕ್ ಫೈಂಡರ್ ಏಕೆ ಬಳಸಬೇಕು?",
+        bank_finder_info: "ನಮ್ಮ ಬ್ಯಾಂಕ್ ಫೈಂಡರ್ ನಿಮಗೆ ಹತ್ತಿರದ ಬ್ಯಾಂಕುಗಳನ್ನು ಹುಡುಕಲು ಸಹಾಯ ಮಾಡುತ್ತದೆ, ಇದರಿಂದ ನೀವು ಹಣಕಾಸು ಸೇವೆಗಳನ್ನು ಸುಲಭವಾಗಿ ಪಡೆಯಬಹುದು. ಖಾತೆಗಳನ್ನು ತೆರೆಯಲು, ಸಾಲಗಳಿಗೆ ಅರ್ಜಿ ಸಲ್ಲಿಸಲು ಅಥವಾ ಹಣಕಾಸು ಸಲಹೆ ಪಡೆಯಲು ಹತ್ತಿರದ ಶಾಖೆಯನ್ನು ಹುಡುಕಿ. ಪ್ರಾರಂಭಿಸಲು ಕೆಳಗೆ ನಿಮ್ಮ ಸ್ಥಳದ ವಿವರಗಳನ್ನು ನಮೂದಿಸಿ.",
+        enter_location: "ನಿಮ್ಮ ಸ್ಥಳವನ್ನು ನಮೂದಿಸಿ",
+        village_city: "ಗ್ರಾಮ/ನಗರ",
+        district: "ಜಿಲ್ಲೆ",
+        state: "ರಾಜ್ಯ",
+        find_banks: "ಬ್ಯಾಂಕುಗಳನ್ನು ಹುಡುಕಿ",
+        searching_banks: "ನಿಮ್ಮ ಪ್ರದೇಶದಲ್ಲಿ ಬ್ಯಾಂಕುಗಳನ್ನು ಹುಡುಕುತ್ತಿದ್ದೇವೆ...",
+        banks_near_you: "ನಿಮ್ಮ ಹತ್ತಿರದ ಬ್ಯಾಂಕುಗಳು",
+        no_banks_found: "ಈ ಸ್ಥಳದಲ್ಲಿ ಯಾವುದೇ ಬ್ಯಾಂಕುಗಳು ಕಂಡುಬಂದಿಲ್ಲ",
+        try_different_location: "ದಯವಿಟ್ಟು ಬೇರೆ ಸ್ಥಳವನ್ನು ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ನಿಮ್ಮ ಕಾಗುಣಿತವನ್ನು ಪರಿಶೀಲಿಸಿ.",
+        view_on_map: "ನಕ್ಷೆಯಲ್ಲಿ ನೋಡಿ",
+        get_directions: "ನಿರ್ದೇಶನಗಳನ್ನು ಪಡೆಯಿರಿ",
+        distance: "ದೂರ",
+        banks_found: "ಬ್ಯಾಂಕುಗಳು ನಿಮ್ಮ ಸ್ಥಳದ ಹತ್ತಿರ ಕಂಡುಬಂದಿವೆ"
+    };
+
+    // Global variables
+    let map;
+    let markers = [];
+    let currentLanguage = getCurrentLanguage();
+    
+    // Initialize Google Map
+    function initMap() {
+        // Default center (India)
+        const defaultLocation = { lat: 20.5937, lng: 78.9629 };
+        
+        map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 5,
+            center: defaultLocation,
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: true,
+            zoomControl: true
+        });
+    }
+    
+    // Add markers to the map
+    function addMarkersToMap(banks, centerLocation) {
+        // Clear previous markers
+        markers.forEach(marker => marker.setMap(null));
+        markers = [];
+        
+        // Set map center to searched location
+        map.setCenter(centerLocation);
+        map.setZoom(13);
+        
+        // Add markers for each bank
+        banks.forEach((bank, index) => {
+            const marker = new google.maps.Marker({
+                position: { lat: bank.lat, lng: bank.lng },
+                map: map,
+                title: bank.name,
+                animation: google.maps.Animation.DROP,
+                label: (index + 1).toString()
+            });
+            
+            // Add info window
+            const infoWindow = new google.maps.InfoWindow({
+                content: `
+                    <div style="padding: 10px; max-width: 200px;">
+                        <h5 style="margin-bottom: 5px;">${bank.name}</h5>
+                        <p style="margin-bottom: 8px; font-size: 0.9rem;">${bank.address}</p>
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=${bank.lat},${bank.lng}" target="_blank" 
+                           style="color: #4d9d7c; text-decoration: none; font-weight: bold;">
+                           <i class="fas fa-directions"></i> ${translations[currentLanguage].get_directions}
+                        </a>
+                    </div>
+                `
+            });
+            
+            marker.addListener("click", () => {
+                infoWindow.open(map, marker);
+            });
+            
+            markers.push(marker);
+        });
+    }
+    
+    // Display banks in the list
+    function displayBanks(banks) {
+        const bankListContainer = document.getElementById("bankList");
+        bankListContainer.innerHTML = '';
+        
+        // Show the number of banks found
+        const banksFoundCount = document.createElement("div");
+        banksFoundCount.className = "col-12 mb-3";
+        banksFoundCount.innerHTML = `<p class="lead text-center"><strong>${banks.length}</strong> ${translations[currentLanguage].banks_found}</p>`;
+        bankListContainer.appendChild(banksFoundCount);
+        
+        // Display each bank
+        banks.forEach((bank, index) => {
+            const bankCard = document.createElement("div");
+            bankCard.className = "col-md-6 col-lg-4";
+            bankCard.innerHTML = `
+                <div class="card bank-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="me-3">
+                                <div class="bank-icon rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                    <span class="fw-bold">${index + 1}</span>
+                                </div>
+                            </div>
+                            <h5 class="card-title mb-0">${bank.name}</h5>
+                        </div>
+                        <p class="card-text mb-3">${bank.address}</p>
+                        <div class="d-flex justify-content-between">
+                            <a href="#" class="btn btn-sm btn-outline-primary view-on-map" data-index="${index}">
+                                <i class="fas fa-map-marker-alt me-1"></i> ${translations[currentLanguage].view_on_map}
+                            </a>
+                            <a href="https://www.google.com/maps/dir/?api=1&destination=${bank.lat},${bank.lng}" target="_blank" class="btn btn-sm btn-primary">
+                                <i class="fas fa-directions me-1"></i> ${translations[currentLanguage].get_directions}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+            bankListContainer.appendChild(bankCard);
+        });
+        
+        // Add event listeners to "View on Map" buttons
+        document.querySelectorAll('.view-on-map').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                const index = parseInt(button.getAttribute('data-index'));
+                google.maps.event.trigger(markers[index], 'click');
+                map.panTo(markers[index].getPosition());
+                map.setZoom(15);
+                
+                // Scroll to map
+                document.getElementById('map').scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+    }
+    
+    // Handle bank search form submission
+    document.addEventListener('DOMContentLoaded', () => {
+        const bankSearchForm = document.getElementById('bankSearchForm');
+        const loadingContainer = document.getElementById('loadingContainer');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const noResultsContainer = document.getElementById('noResultsContainer');
+        
+        // Get current language for translations
+        currentLanguage = getCurrentLanguage();
+        updateContent(currentLanguage);
+        
+        // Form submission handler
+        bankSearchForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Get form values
+            const location = document.getElementById('location').value.trim();
+            const district = document.getElementById('district').value.trim();
+            const state = document.getElementById('state').value.trim();
+            
+            // Show loading, hide results and no results
+            loadingContainer.style.display = 'block';
+            resultsContainer.style.display = 'none';
+            noResultsContainer.style.display = 'none';
+            
+            try {
+                // Make API request to find banks
+                const response = await fetch('/find_banks', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ location, district, state })
+                });
+                
+                const data = await response.json();
+                
+                // Hide loading
+                loadingContainer.style.display = 'none';
+                
+                if (data.error) {
+                    // Show no results if there's an error
+                    noResultsContainer.style.display = 'block';
+                    console.error('Error:', data.error);
+                } else if (data.banks && data.banks.length > 0) {
+                    // Show results
+                    resultsContainer.style.display = 'block';
+                    
+                    // Add markers to map and display banks
+                    addMarkersToMap(data.banks, data.center);
+                    displayBanks(data.banks);
+                } else {
+                    // Show no results
+                    noResultsContainer.style.display = 'block';
+                }
+            } catch (error) {
+                // Hide loading, show no results on error
+                loadingContainer.style.display = 'none';
+                noResultsContainer.style.display = 'block';
+                console.error('Error:', error);
+            }
+        });
+    });
+</script>
+{% endblock %}

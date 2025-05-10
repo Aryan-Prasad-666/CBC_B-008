@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<!-- AOS Library for Scroll Animations -->
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<style>
+    .hero {
+        position: relative;
+        background: linear-gradient(135deg, rgba(30, 95, 116, 0.8) 0%, rgba(77, 157, 124, 0.6) 100%), url('https://images.pexels.com/photos/325944/pexels-photo-325944.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2') no-repeat center center;
+        background-size: cover;
+        background-attachment: fixed;
+        color: var(--light-color);
+        padding: 6rem 0;
+        text-align: center;
+        overflow: hidden;
+        animation: gradientShift 10s ease infinite;
+    }
+    @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    .hero h1 {
+        font-weight: 700;
+        font-size: 3.5rem;
+        text-shadow: 0 0 15px rgba(243, 174, 75, 0.7);
+        animation: fadeInDown 1s ease;
+    }
+    .hero p {
+        font-size: 1.3rem;
+        font-weight: 400;
+        max-width: 700px;
+        margin: 0 auto 2rem;
+        animation: fadeInUp 1s ease 0.3s;
+        animation-fill-mode: backwards;
+    }
+    .hero .btn {
+        background-color: var(--accent-color);
+        color: var(--primary-color);
+        font-weight: 600;
+        border-radius: 30px;
+        padding: 12px 40px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        animation: fadeInUp 1s ease 0.6s;
+        animation-fill-mode: backwards;
+    }
+    .hero .btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 20px rgba(243, 174, 75, 0.7);
+    }
+    .language-selector select {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid var(--accent-color);
+        color: var(--primary-color);
+        border-radius: 20px;
+        padding: 8px 15px;
+        backdrop-filter: blur(5px);
+        transition: box-shadow 0.3s ease;
+    }
+    .language-selector select:hover {
+        box-shadow: 0 0 10px rgba(243, 174, 75, 0.5);
+    }
+    .features {
+        background: var(--light-color);
+        padding: 5rem 0;
+    }
+    .features .card {
+        background: rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(10px);
+        border: none;
+        border-radius: 15px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        padding: 1.5rem;
+    }
+    .features .card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+    .features .card i {
+        color: var(--accent-color);
+        font-size: 3rem;
+        transition: transform 0.3s ease;
+    }
+    .features .card:hover i {
+        transform: rotate(10deg);
+    }
+    .features .card-title {
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+    .features .card-text {
+        color: var(--dark-color);
+        font-size: 0.95rem;
+    }
+    .cta {
+        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        background-size: 200% 100%;
+        animation: gradientShift 8s ease infinite;
+        color: var(--light-color);
+        padding: 5rem 0;
+        text-align: center;
+    }
+    .cta h2 {
+        font-weight: 700;
+        text-shadow: 0 0 10px rgba(243, 174, 75, 0.5);
+    }
+    .cta p {
+        font-size: 1.2rem;
+        max-width: 600px;
+        margin: 0 auto 2rem;
+    }
+    .cta .btn {
+        background-color: var(--accent-color);
+        color: var(--primary-color);
+        font-weight: 600;
+        border-radius: 30px;
+        padding: 12px 40px;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .cta .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.5s ease;
+    }
+    .cta .btn:hover::before {
+        left: 100%;
+    }
+    .cta .btn:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0 20px rgba(243, 174, 75, 0.7);
+    }
+    @keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @media (max-width: 768px) {
+        .hero h1 {
+            font-size: 2.5rem;
+        }
+        .hero p {
+            font-size: 1rem;
+        }
+        .features .card {
+            margin-bottom: 2rem;
+        }
+        .cta {
+            padding: 3rem 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero" data-aos="fade-in">
+    <div class="container">
+        <h1 data-translate="hero_title">Discover Vittam.ai</h1>
+        <p data-translate="hero_description">Transforming rural lives with innovative financial tools, business support, and personalized assistance for prosperity.</p>
+        <a href="/services" class="btn btn-primary" data-translate="hero_button">Explore Now</a>
+    </div>
+</section>
+
+<!-- Language Selector -->
+<section class="language-selector py-4 text-center" style="background: var(--light-color);" data-aos="fade-up">
+    <div class="container">
+        <label for="language" class="me-2" style="color: var(--dark-color); font-weight: 500;" data-translate="language_label">Select Language:</label>
+        <select id="language" class="form-select d-inline-block w-auto">
+            <option value="en" data-translate="lang_en">English</option>
+            <option value="hi" data-translate="lang_hi">हिंदी (Hindi)</option>
+            <option value="kn" data-translate="lang_kn">ಕನ್ನಡ (Kannada)</option>
+        </select>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features" data-aos="fade-up">
+    <div class="container">
+        <h2 class="text-center fw-bold mb-5" style="color: var(--primary-color);" data-translate="features_title">What We Offer</h2>
+        <div class="row g-4">
+            <!-- Microloan Assistance -->
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <i class="fas fa-hand-holding-usd mb-3"></i>
+                        <h5 class="card-title" data-translate="feature_microloan_title">Microloan Assistance</h5>
+                        <p class="card-text" data-translate="feature_microloan_text">Secure affordable microloans with easy applications tailored for rural communities.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Area Scheme Finder -->
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <i class="fas fa-map-marked-alt mb-3"></i>
+                        <h5 class="card-title" data-translate="feature_schemes_title">Area Scheme Finder</h5>
+                        <p class="card-text" data-translate="feature_schemes_text">Explore government and local schemes to boost your financial opportunities.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Financial Document Analyzer -->
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <i class="fas fa-file-alt mb-3"></i>
+                        <h5 class="card-title" data-translate="feature_document_title">Document Analyzer</h5>
+                        <p class="card-text" data-translate="feature_document_text">Ensure your financial documents are accurate and loan-ready.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Bank/Loan Assistance -->
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="400">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <i class="fas fa-university mb-3"></i>
+                        <h5 class="card-title" data-translate="feature_bank_title">Bank/Loan Assistance</h5>
+                        <p class="card-text" data-translate="feature_bank_text">Expert guidance for bank accounts, loans, and repayment plans.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Personal Expense Tracker -->
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="500">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <i class="fas fa-chart-pie mb-3"></i>
+                        <h5 class="card-title" data-translate="feature_expense_title">Expense Tracker</h5>
+                        <p class="card-text" data-translate="feature_expense_text">Monitor expenses with vibrant, easy-to-read graphs for rural users.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Small Business Assistance -->
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="600">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <i class="fas fa-store mb-3"></i>
+                        <h5 class="card-title" data-translate="feature_business_title">Small Business Support</h5>
+                        <p class="card-text" data-translate="feature_business_text">Grow your business with NLP-driven database management tools.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action Section -->
+<section class="cta" data-aos="zoom-in">
+    <div class="container">
+        <h2 data-translate="cta_title">Empower Your Future</h2>
+        <p data-translate="cta_description">Join Vittam.ai to unlock tailored financial and business solutions for rural success.</p>
+        <a href="/signup" class="btn btn-primary" data-translate="cta_button">Get Started</a>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<!-- AOS Library JS -->
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    AOS.init({
+        duration: 800,
+        once: true
+    });
+
+    // Add translations for homepage
+    const homepageTranslations = {
+        en: {
+            title_home: "Home",
+            hero_title: "Discover Vittam.ai",
+            hero_description: "Transforming rural lives with innovative financial tools, business support, and personalized assistance for prosperity.",
+            hero_button: "Explore Now",
+            language_label: "Select Language:",
+            features_title: "What We Offer",
+            feature_microloan_title: "Microloan Assistance",
+            feature_microloan_text: "Secure affordable microloans with easy applications tailored for rural communities.",
+            feature_schemes_title: "Area Scheme Finder",
+            feature_schemes_text: "Explore government and local schemes to boost your financial opportunities.",
+            feature_document_title: "Document Analyzer",
+            feature_document_text: "Ensure your financial documents are accurate and loan-ready.",
+            feature_bank_title: "Bank/Loan Assistance",
+            feature_bank_text: "Expert guidance for bank accounts, loans, and repayment plans.",
+            feature_expense_title: "Expense Tracker",
+            feature_expense_text: "Monitor expenses with vibrant, easy-to-read graphs for rural users.",
+            feature_business_title: "Small Business Support",
+            feature_business_text: "Grow your business with NLP-driven database management tools.",
+            cta_title: "Empower Your Future",
+            cta_description: "Join Vittam.ai to unlock tailored financial and business solutions for rural success.",
+            cta_button: "Get Started"
+        },
+        hi: {
+            title_home: "होम",
+            hero_title: "वित्तम.एआई की खोज करें",
+            hero_description: "ग्रामीण जीवन को नवीन वित्तीय उपकरणों, व्यवसाय समर्थन और समृद्धि के लिए व्यक्तिगत सहायता के साथ बदलना।",
+            hero_button: "अब अन्वेषण करें",
+            language_label: "भाषा चुनें:",
+            features_title: "हम क्या प्रदान करते हैं",
+            feature_microloan_title: "माइक्रोलोन सहायता",
+            feature_microloan_text: "ग्रामीण समुदायों के लिए आसान आवेदनों के साथ किफायती माइक्रोलोन प्राप्त करें।",
+            feature_schemes_title: "क्षेत्र योजना खोजक",
+            feature_schemes_text: "अपने वित्तीय अवसरों को बढ़ाने के लिए सरकारी और स्थानीय योजनाओं का अन्वेषण करें।",
+            feature_document_title: "दस्तावेज़ विश्लेषक",
+            feature_document_text: "अपने वित्तीय दस्तावेजों को सटीक और ऋण के लिए तैयार सुनिश्चित करें।",
+            feature_bank_title: "बैंक/ऋण सहायता",
+            feature_bank_text: "बैंक खातों, ऋणों और पुनर्भुगतान योजनाओं के लिए विशेषज्ञ मार्गदर्शन।",
+            feature_expense_title: "खर्च ट्रैकर",
+            feature_expense_text: "ग्रामीण उपयोगकर्ताओं के लिए जीवंत, आसानी से पढ़ने योग्य ग्राफ के साथ खर्चों की निगरानी करें।",
+            feature_business_title: "छोटा व्यवसाय समर्थन",
+            feature_business_text: "एनएलपी-चालित डेटाबेस प्रबंधन उपकरणों के साथ अपने व्यवसाय को बढ़ाएं।",
+            cta_title: "अपने भविष्य को सशक्त बनाएं",
+            cta_description: "ग्रामीण सफलता के लिए अनुकूलित वित्तीय और व्यावसायिक समाधानों को अनलॉक करने के लिए वित्तम.एआई में शामिल हों।",
+            cta_button: "शुरू करें"
+        },
+        kn: {
+            title_home: "ಮುಖಪುಟ",
+            hero_title: "ವಿತ್ತಮ್.ಎಐ ಅನ್ನು ಕಂಡುಕೊಳ್ಳಿ",
+            hero_description: "ಗ್ರಾಮೀಣ ಜೀವನವನ್ನು ನವೀನ ಆರ್ಥಿಕ ಸಾಧನಗಳು, ವ್ಯಾಪಾರ ಬೆಂಬಲ ಮತ್ತು ಸಮೃದ್ಧಿಗಾಗಿ ವೈಯಕ್ತಿಕ ಸಹಾಯದೊಂದಿಗೆ ಪರಿವರ্তಿಸುವುದು.",
+            hero_button: "ಈಗ ಶೋಧಿಸಿ",
+            language_label: "ಭಾಷೆ ಆಯ್ಕೆಮಾಡಿ:",
+            features_title: "ನಾವು ಏನು ನೀಡುತ್ತೇವೆ",
+            feature_microloan_title: "ಸಣ್ಣ ಸಾಲ ಸಹಾಯ",
+            feature_microloan_text: "ಗ್ರಾಮೀಣ ಸಮುದಾಯಗಳಿಗೆ ಸುಲಭವಾದ ಅರ್ಜಿಗಳೊಂದಿಗೆ ಕೈಗೆಟುಕುವ ಸಣ್ಣ ಸಾಲಗಳನ್ನು ಪಡೆಯಿರಿ.",
+            feature_schemes_title: "ಪ್ರದೇಶ ಯೋಜನೆ ಹುಡುಕಾಟ",
+            feature_schemes_text: "ನಿಮ್ಮ ಆರ್ಥಿಕ ಅವಕಾಶಗಳನ್ನು ಹೆಚ್ಚಿಸಲು ಸರ್ಕಾರಿ ಮತ್ತು ಸ್ಥಳೀಯ ಯೋಜನೆಗಳನ್ನು ಶೋಧಿಸಿ.",
+            feature_document_title: "ದಾಖಲೆ ವಿಶ್ಲೇಷಕ",
+            feature_document_text: "ನಿಮ್ಮ ಆರ್ಥಿಕ ದಾಖಲೆಗಳು ನಿಖರವಾಗಿವೆ ಮತ್ತು ಸಾಲಕ್ಕೆ ಸಿದ್ಧವಾಗಿವೆ ಎಂದು ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಿ.",
+            feature_bank_title: "ಬ್ಯಾಂಕ್/ಸಾಲ ಸಹಾಯ",
+            feature_bank_text: "ಬ್ಯಾಂಕ್ ಖಾತೆಗಳು, ಸಾಲಗಳು ಮತ್ತು ಮರುಪಾವತಿ ಯೋಜನೆಗಳಿಗೆ ತಜ್ಞರ ಮಾರ್ಗದರ್ಶನ.",
+            feature_expense_title: "ವೆಚ್ಚ ಟ್ರ್ಯಾಕರ್",
+            feature_expense_text: "ಗ್ರಾಮೀಣ ಬಳಕೆದಾರರಿಗಾಗಿ ರೋಮಾಂಚಕ, ಸುಲಭವಾಗಿ ಓದಬಹುದಾದ ಗ್ರಾಫ್‌ಗಳೊಂದಿಗೆ ವೆಚ್ಚವನ್ನು ಮೇಲ್ವಿಚಾರಣೆ ಮಾಡಿ.",
+            feature_business_title: "ಸಣ್ಣ ವ್ಯಾಪಾರ ಬೆಂಬಲ",
+            feature_business_text: "ಎನ್‌ಎಲ್‌ಪಿ-ಚಾಲಿತ ಡೇಟಾಬೇಸ್ ನಿರ್ವಹಣೆ ಸಾಧನಗಳೊಂದಿಗೆ ನಿಮ್ಮ ವ್ಯಾಪಾರವನ್ನು ಬೆಳೆಸಿಕೊಳ್ಳಿ.",
+            cta_title: "ನಿಮ್ಮ ಭವಿಷ್ಯವನ್ನು ಸಬಲೀಕರಿಸಿ",
+            cta_description: "ಗ್ರಾಮೀಣ ಯಶಸ್ಸಿಗಾಗಿ ಅನುಗುಣವಾದ ಆರ್ಥಿಕ ಮತ್ತು ವ್ಯಾಪಾರ ಪರಿಹಾರಗಳನ್ನು ಅನ್‌ಲಾಕ್ ಮಾಡಲು ವಿತ್ತಮ್.ಎಐಗೆ ಸೇರಿಕೊಳ್ಳಿ.",
+            cta_button: "ಪ್ರಾರಂಭಿಸಿ"
+        }
+    };
+
+    // Merge homepage translations with base translations
+    Object.keys(homepageTranslations).forEach(lang => {
+        translations[lang] = { ...translations[lang], ...homepageTranslations[lang] };
+    });
+
+    // Handle homepage language selector
+    document.getElementById('language').addEventListener('change', function() {
+        const lang = this.value;
+        const newUrl = new URL(window.location);
+        newUrl.searchParams.set('lang', lang);
+        window.history.pushState({}, '', newUrl);
+        updateContent(lang);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,692 @@
+{% extends "base.html" %}
+
+{% block title %}
+<span data-translate="loan_title">Vittam.ai - Microloan Assistance</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .loan-header {
+        background: linear-gradient(135deg, rgba(30, 95, 116, 0.8) 0%, rgba(77, 157, 124, 0.6) 100%), url('https://images.pexels.com/photos/1449059/pexels-photo-1449059.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2') no-repeat center center;
+        background-size: cover;
+        color: var(--light-color);
+        padding: 4rem 0;
+        text-align: center;
+    }
+
+    .loan-section {
+        padding: 4rem 0;
+        background: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url('https://images.pexels.com/photos/325944/pexels-photo-325944.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2') no-repeat center center fixed;
+        background-size: cover;
+        min-height: 100vh;
+    }
+
+    .form-card {
+        background-color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .form-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .form-control {
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 1.5rem;
+        border: 1px solid #ddd;
+    }
+
+    .form-control:focus {
+        border-color: var(--secondary-color);
+        box-shadow: 0 0 0 0.25rem rgba(77, 157, 124, 0.25);
+    }
+
+    .loan-btn {
+        background-color: var(--accent-color);
+        color: var(--primary-color);
+        font-weight: 600;
+        border: none;
+        border-radius: 30px;
+        padding: 12px 30px;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    .loan-btn:hover {
+        background-color: #e09f3e;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(243, 174, 75, 0.4);
+    }
+
+    .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+
+    .step-indicator::before {
+        content: '';
+        position: absolute;
+        top: 25px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #ddd;
+        z-index: 1;
+    }
+
+    .step {
+        width: 50px;
+        height: 50px;
+        background-color: white;
+        border: 2px solid #ddd;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: #777;
+        position: relative;
+        z-index: 2;
+        transition: all 0.3s ease;
+    }
+
+    .step.active {
+        background-color: var(--secondary-color);
+        border-color: var(--secondary-color);
+        color: white;
+    }
+
+    .step.completed {
+        background-color: var(--accent-color);
+        border-color: var(--accent-color);
+        color: var(--primary-color);
+    }
+
+    .step-title {
+        position: absolute;
+        bottom: -25px;
+        text-align: center;
+        width: 130px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.85rem;
+        color: #777;
+    }
+
+    .result-card {
+        background-color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        display: none;
+    }
+
+    .result-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+
+    .result-icon.success {
+        color: var(--secondary-color);
+    }
+
+    .result-icon.warning {
+        color: var(--accent-color);
+    }
+
+    .result-actions {
+        margin-top: 2rem;
+    }
+
+    .form-slide {
+        transition: all 0.5s ease;
+    }
+
+    @media (max-width: 768px) {
+        .step {
+            width: 40px;
+            height: 40px;
+            font-size: 0.85rem;
+        }
+
+        .step-title {
+            font-size: 0.7rem;
+            width: 70px;
+        }
+
+        .step-indicator::before {
+            top: 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Loan Header -->
+<section class="loan-header">
+    <div class="container">
+        <h1 class="fw-bold" data-translate="loan_title">Microloan Assistance</h1>
+        <p class="mt-3" data-translate="loan_subtitle">Check your eligibility and apply for microloans tailored to your needs</p>
+    </div>
+</section>
+
+<!-- Loan Application Form -->
+<section class="loan-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Step Indicator -->
+                <div class="step-indicator mb-5">
+                    <div class="step active" id="step1">
+                        1
+                        <div class="step-title" data-translate="step1_title">Basic Info</div>
+                    </div>
+                    <div class="step" id="step2">
+                        2
+                        <div class="step-title" data-translate="step2_title">Financial Details</div>
+                    </div>
+                    <div class="step" id="step3">
+                        3
+                        <div class="step-title" data-translate="step3_title">Loan Purpose</div>
+                    </div>
+                    <div class="step" id="step4">
+                        4
+                        <div class="step-title" data-translate="step4_title">Result</div>
+                    </div>
+                </div>
+                
+                <!-- Form Cards -->
+                <div class="form-card form-slide" id="form-step1">
+                    <h3 class="mb-4 text-center" data-translate="basic_info_heading">Basic Information</h3>
+                    <form id="basicInfoForm">
+                        <div class="mb-3">
+                            <label for="fullName" class="form-label" data-translate="full_name">Full Name</label>
+                            <input type="text" class="form-control" id="fullName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="age" class="form-label" data-translate="age">Age</label>
+                            <input type="number" class="form-control" id="age" min="18" max="120" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="gender" class="form-label" data-translate="gender">Gender</label>
+                            <select class="form-control" id="gender" required>
+                                <option value="" data-translate="select_option">Select an option</option>
+                                <option value="male" data-translate="male">Male</option>
+                                <option value="female" data-translate="female">Female</option>
+                                <option value="other" data-translate="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="location" class="form-label" data-translate="location">Village/Town</label>
+                            <input type="text" class="form-control" id="location" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="district" class="form-label" data-translate="district">District</label>
+                            <input type="text" class="form-control" id="district" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="state" class="form-label" data-translate="state">State</label>
+                            <input type="text" class="form-control" id="state" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="aadhar" class="form-label" data-translate="aadhar">Aadhar Number (Last 4 digits)</label>
+                            <input type="text" class="form-control" id="aadhar" maxlength="4" pattern="[0-9]{4}" required>
+                        </div>
+                        <div class="text-center">
+                            <button type="button" class="loan-btn" id="nextToStep2" data-translate="next_button">Next</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="form-card form-slide" id="form-step2" style="display: none;">
+                    <h3 class="mb-4 text-center" data-translate="financial_info_heading">Financial Information</h3>
+                    <form id="financialInfoForm">
+                        <div class="mb-3">
+                            <label for="monthlyIncome" class="form-label" data-translate="monthly_income">Monthly Income (₹)</label>
+                            <input type="number" class="form-control" id="monthlyIncome" min="0" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="occupation" class="form-label" data-translate="occupation">Primary Occupation</label>
+                            <select class="form-control" id="occupation" required>
+                                <option value="" data-translate="select_option">Select an option</option>
+                                <option value="farming" data-translate="farming">Farming</option>
+                                <option value="dairy" data-translate="dairy">Dairy</option>
+                                <option value="shop" data-translate="shop">Small Shop/Business</option>
+                                <option value="crafts" data-translate="crafts">Handicrafts/Artisan</option>
+                                <option value="labor" data-translate="labor">Daily Labor</option>
+                                <option value="other" data-translate="other_occupation">Other</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="existingLoans" class="form-label" data-translate="existing_loans">Do you have any existing loans?</label>
+                            <select class="form-control" id="existingLoans" required>
+                                <option value="" data-translate="select_option">Select an option</option>
+                                <option value="yes" data-translate="yes">Yes</option>
+                                <option value="no" data-translate="no">No</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="existingLoanAmountDiv" style="display: none;">
+                            <label for="existingLoanAmount" class="form-label" data-translate="existing_loan_amount">Total Existing Loan Amount (₹)</label>
+                            <input type="number" class="form-control" id="existingLoanAmount" min="0">
+                        </div>
+                        <div class="mb-3">
+                            <label for="defaultHistory" class="form-label" data-translate="default_history">Have you ever defaulted on a loan?</label>
+                            <select class="form-control" id="defaultHistory" required>
+                                <option value="" data-translate="select_option">Select an option</option>
+                                <option value="yes" data-translate="yes">Yes</option>
+                                <option value="no" data-translate="no">No</option>
+                            </select>
+                        </div>
+                        <div class="text-center">
+                            <button type="button" class="btn btn-outline-secondary me-2" id="backToStep1" data-translate="back_button">Back</button>
+                            <button type="button" class="loan-btn d-inline-block" style="width: auto" id="nextToStep3" data-translate="next_button">Next</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="form-card form-slide" id="form-step3" style="display: none;">
+                    <h3 class="mb-4 text-center" data-translate="loan_purpose_heading">Loan Purpose</h3>
+                    <form id="loanPurposeForm">
+                        <div class="mb-3">
+                            <label for="loanAmount" class="form-label" data-translate="loan_amount">Loan Amount Required (₹)</label>
+                            <input type="number" class="form-control" id="loanAmount" min="1000" max="100000" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="loanPurpose" class="form-label" data-translate="loan_purpose">Loan Purpose</label>
+                            <select class="form-control" id="loanPurpose" required>
+                                <option value="" data-translate="select_option">Select an option</option>
+                                <option value="agriculture" data-translate="agriculture">Agricultural Tools/Seeds</option>
+                                <option value="livestock" data-translate="livestock">Livestock Purchase</option>
+                                <option value="business" data-translate="business_expansion">Business Expansion</option>
+                                <option value="education" data-translate="education">Education</option>
+                                <option value="healthcare" data-translate="healthcare">Healthcare</option>
+                                <option value="home" data-translate="home_improvement">Home Improvement</option>
+                                <option value="other" data-translate="other_purpose">Other</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="loanTenure" class="form-label" data-translate="loan_tenure">Preferred Loan Tenure (months)</label>
+                            <select class="form-control" id="loanTenure" required>
+                                <option value="" data-translate="select_option">Select an option</option>
+                                <option value="3">3</option>
+                                <option value="6">6</option>
+                                <option value="12">12</option>
+                                <option value="18">18</option>
+                                <option value="24">24</option>
+                                <option value="36">36</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="phoneNumber" class="form-label" data-translate="phone_number">Phone Number</label>
+                            <input type="tel" class="form-control" id="phoneNumber" pattern="[0-9]{10}" maxlength="10" required>
+                        </div>
+                        <div class="text-center">
+                            <button type="button" class="btn btn-outline-secondary me-2" id="backToStep2" data-translate="back_button">Back</button>
+                            <button type="button" class="loan-btn d-inline-block" style="width: auto" id="checkEligibility" data-translate="check_eligibility">Check Eligibility</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Results Cards -->
+                <div class="result-card" id="result-approved" style="display: none;">
+                    <div class="result-icon success">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3 class="text-success mb-3" data-translate="approved_heading">Congratulations!</h3>
+                    <p class="mb-4" data-translate="approved_message">Based on the information provided, you are likely to be eligible for a microloan.</p>
+                    <p class="mb-4" data-translate="approved_detail">Our representative will contact you within 24-48 hours to guide you through the next steps and complete your application.</p>
+                    <div class="result-actions">
+                        <a href="/document-analyzer" class="btn btn-outline-success me-2" data-translate="document_prep">Prepare Documents</a>
+                        <a href="/" class="btn btn-secondary" data-translate="back_home">Back to Home</a>
+                    </div>
+                </div>
+                
+                <div class="result-card" id="result-pending" style="display: none;">
+                    <div class="result-icon warning">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <h3 class="text-warning mb-3" data-translate="pending_heading">Additional Review Required</h3>
+                    <p class="mb-4" data-translate="pending_message">We need more information to determine your eligibility.</p>
+                    <p class="mb-4" data-translate="pending_detail">Please visit your nearest Bank or Vittam.ai service center with your ID proof, address proof, and income documents for a personalized assessment.</p>
+                    <div class="result-actions">
+                        <a href="/contact" class="btn btn-warning me-2" data-translate="find_center">Find Service Center</a>
+                        <a href="/" class="btn btn-secondary" data-translate="back_home">Back to Home</a>
+                    </div>
+                </div>
+                
+                <div class="result-card" id="result-rejected" style="display: none;">
+                    <div class="result-icon warning">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <h3 class="text-danger mb-3" data-translate="rejected_heading">We're Sorry</h3>
+                    <p class="mb-4" data-translate="rejected_message">Based on the information provided, you may not be eligible for a microloan at this time.</p>
+                    <p class="mb-4" data-translate="rejected_detail">Don't worry! Our financial advisors can help you improve your eligibility or explore alternative options.</p>
+                    <div class="result-actions">
+                        <a href="/schemes" class="btn btn-outline-primary me-2" data-translate="explore_schemes">Explore Govt. Schemes</a>
+                        <a href="/contact" class="btn btn-warning" data-translate="speak_advisor">Speak to Advisor</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Add loan page translations
+    const loanTranslations = {
+        en: {
+            loan_title: "Microloan Assistance",
+            loan_subtitle: "Check your eligibility and apply for microloans tailored to your needs",
+            step1_title: "Basic Info",
+            step2_title: "Financial Details",
+            step3_title: "Loan Purpose",
+            step4_title: "Result",
+            basic_info_heading: "Basic Information",
+            full_name: "Full Name",
+            age: "Age",
+            gender: "Gender",
+            select_option: "Select an option",
+            male: "Male",
+            female: "Female",
+            other: "Other",
+            location: "Village/Town",
+            district: "District",
+            state: "State",
+            aadhar: "Aadhar Number (Last 4 digits)",
+            next_button: "Next",
+            financial_info_heading: "Financial Information",
+            monthly_income: "Monthly Income (₹)",
+            occupation: "Primary Occupation",
+            farming: "Farming",
+            dairy: "Dairy",
+            shop: "Small Shop/Business",
+            crafts: "Handicrafts/Artisan",
+            labor: "Daily Labor",
+            other_occupation: "Other",
+            existing_loans: "Do you have any existing loans?",
+            yes: "Yes",
+            no: "No",
+            existing_loan_amount: "Total Existing Loan Amount (₹)",
+            default_history: "Have you ever defaulted on a loan?",
+            back_button: "Back",
+            loan_purpose_heading: "Loan Purpose",
+            loan_amount: "Loan Amount Required (₹)",
+            loan_purpose: "Loan Purpose",
+            agriculture: "Agricultural Tools/Seeds",
+            livestock: "Livestock Purchase",
+            business_expansion: "Business Expansion",
+            education: "Education",
+            healthcare: "Healthcare",
+            home_improvement: "Home Improvement",
+            other_purpose: "Other",
+            loan_tenure: "Preferred Loan Tenure (months)",
+            phone_number: "Phone Number",
+            check_eligibility: "Check Eligibility",
+            approved_heading: "Congratulations!",
+            approved_message: "Based on the information provided, you are likely to be eligible for a microloan.",
+            approved_detail: "Our representative will contact you within 24-48 hours to guide you through the next steps and complete your application.",
+            document_prep: "Prepare Documents",
+            back_home: "Back to Home",
+            pending_heading: "Additional Review Required",
+            pending_message: "We need more information to determine your eligibility.",
+            pending_detail: "Please visit your nearest Vittam.ai service center with your ID proof, address proof, and income documents for a personalized assessment.",
+            find_center: "Find Service Center",
+            rejected_heading: "We're Sorry",
+            rejected_message: "Based on the information provided, you may not be eligible for a microloan at this time.",
+            rejected_detail: "Don't worry! Our financial advisors can help you improve your eligibility or explore alternative options.",
+            explore_schemes: "Explore Govt. Schemes",
+            speak_advisor: "Speak to Advisor"
+        },
+        hi: {
+            loan_title: "माइक्रोलोन सहायता",
+            loan_subtitle: "अपनी जरूरतों के अनुरूप माइक्रोलोन के लिए अपनी पात्रता की जांच करें और आवेदन करें",
+            step1_title: "मूल जानकारी",
+            step2_title: "वित्तीय विवरण",
+            step3_title: "ऋण उद्देश्य",
+            step4_title: "परिणाम",
+            basic_info_heading: "मूल जानकारी",
+            full_name: "पूरा नाम",
+            age: "उम्र",
+            gender: "लिंग",
+            select_option: "एक विकल्प चुनें",
+            male: "पुरुष",
+            female: "महिला",
+            other: "अन्य",
+            location: "गांव/कस्बा",
+            district: "जिला",
+            state: "राज्य",
+            aadhar: "आधार संख्या (अंतिम 4 अंक)",
+            next_button: "अगला",
+            financial_info_heading: "वित्तीय जानकारी",
+            monthly_income: "मासिक आय (₹)",
+            occupation: "प्राथमिक व्यवसाय",
+            farming: "खेती",
+            dairy: "डेयरी",
+            shop: "छोटी दुकान/व्यापार",
+            crafts: "हस्तशिल्प/कारीगर",
+            labor: "दैनिक मजदूरी",
+            other_occupation: "अन्य",
+            existing_loans: "क्या आपका कोई मौजूदा ऋण है?",
+            yes: "हां",
+            no: "नहीं",
+            existing_loan_amount: "कुल मौजूदा ऋण राशि (₹)",
+            default_history: "क्या आप कभी ऋण चुकाने में असफल रहे हैं?",
+            back_button: "वापस",
+            loan_purpose_heading: "ऋण उद्देश्य",
+            loan_amount: "आवश्यक ऋण राशि (₹)",
+            loan_purpose: "ऋण का उद्देश्य",
+            agriculture: "कृषि उपकरण/बीज",
+            livestock: "पशुधन खरीद",
+            business_expansion: "व्यापार विस्तार",
+            education: "शिक्षा",
+            healthcare: "स्वास्थ्य देखभाल",
+            home_improvement: "घर में सुधार",
+            other_purpose: "अन्य",
+            loan_tenure: "पसंदीदा ऋण अवधि (महीने)",
+            phone_number: "फोन नंबर",
+            check_eligibility: "पात्रता जांचें",
+            approved_heading: "बधाई हो!",
+            approved_message: "दी गई जानकारी के आधार पर, आप माइक्रोलोन के लिए पात्र हो सकते हैं।",
+            approved_detail: "हमारे प्रतिनिधि 24-48 घंटों के भीतर आपसे संपर्क करेंगे और आपके आवेदन को पूरा करने के लिए अगले चरणों में आपका मार्गदर्शन करेंगे।",
+            document_prep: "दस्तावेज तैयार करें",
+            back_home: "होम पर वापस जाएं",
+            pending_heading: "अतिरिक्त समीक्षा आवश्यक",
+            pending_message: "आपकी पात्रता निर्धारित करने के लिए हमें अधिक जानकारी की आवश्यकता है।",
+            pending_detail: "कृपया अपने पहचान प्रमाण, पते का प्रमाण और आय दस्तावेजों के साथ अपने निकटतम वित्तम.एआई सेवा केंद्र पर जाएं।",
+            find_center: "सेवा केंद्र खोजें",
+            rejected_heading: "हमें खेद है",
+            rejected_message: "दी गई जानकारी के आधार पर, आप इस समय माइक्रोलोन के लिए पात्र नहीं हो सकते हैं।",
+            rejected_detail: "चिंता न करें! हमारे वित्तीय सलाहकार आपकी पात्रता में सुधार करने या वैकल्पिक विकल्पों का पता लगाने में आपकी मदद कर सकते हैं।",
+            explore_schemes: "सरकारी योजनाएं देखें",
+            speak_advisor: "सलाहकार से बात करें"
+        },
+        kn: {
+            loan_title: "ಸಣ್ಣ ಸಾಲ ಸಹಾಯ",
+            loan_subtitle: "ನಿಮ್ಮ ಅಗತ್ಯಗಳಿಗೆ ಅನುಗುಣವಾಗಿ ಸಣ್ಣ ಸಾಲಗಳಿಗೆ ನಿಮ್ಮ ಅರ್ಹತೆಯನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಅರ್ಜಿ ಸಲ್ಲಿಸಿ",
+            step1_title: "ಮೂಲ ಮಾಹಿತಿ",
+            step2_title: "ಆರ್ಥಿಕ ವಿವರಗಳು",
+            step3_title: "ಸಾಲದ ಉದ್ದೇಶ",
+            step4_title: "ಫಲಿತಾಂಶ",
+            basic_info_heading: "ಮೂಲ ಮಾಹಿತಿ",
+            full_name: "ಪೂರ್ಣ ಹೆಸರು",
+            age: "ವಯಸ್ಸು",
+            gender: "ಲಿಂಗ",
+            select_option: "ಆಯ್ಕೆಯನ್ನು ಆರಿಸಿ",
+            male: "ಪುರುಷ",
+            female: "ಮಹಿಳೆ",
+            other: "ಇತರೆ",
+            location: "ಗ್ರಾಮ/ಪಟ್ಟಣ",
+            district: "ಜಿಲ್ಲೆ",
+            state: "ರಾಜ್ಯ",
+            aadhar: "ಆಧಾರ್ ಸಂಖ್ಯೆ (ಕೊನೆಯ 4 ಅಂಕೆಗಳು)",
+            next_button: "ಮುಂದೆ",
+            financial_info_heading: "ಆರ್ಥಿಕ ಮಾಹಿತಿ",
+            monthly_income: "ಮಾಸಿಕ ಆದಾಯ (₹)",
+            occupation: "ಪ್ರಾಥಮಿಕ ಉದ್ಯೋಗ",
+            farming: "ಕೃಷಿ",
+            dairy: "ಹೈನುಗಾರಿಕೆ",
+            shop: "ಚಿಕ್ಕ ಅಂಗಡಿ/ವ್ಯಾಪಾರ",
+            crafts: "ಕರಕುಶಲ/ಕಲಾವಿದ",
+            labor: "ದಿನಗೂಲಿ",
+            other_occupation: "ಇತರೆ",
+            existing_loans: "ನಿಮಗೆ ಯಾವುದಾದರೂ ಅಸ್ತಿತ್ವದಲ್ಲಿರುವ ಸಾಲಗಳಿವೆಯೇ?",
+            yes: "ಹೌದು",
+            no: "ಇಲ್ಲ",
+            existing_loan_amount: "ಒಟ್ಟು ಅಸ್ತಿತ್ವದಲ್ಲಿರುವ ಸಾಲದ ಮೊತ್ತ (₹)",
+            default_history: "ನೀವು ಎಂದಾದರೂ ಸಾಲದ ಮೇಲೆ ಡೀಫಾಲ್ಟ್ ಆಗಿದ್ದೀರಾ?",
+            back_button: "ಹಿಂದೆ",
+            loan_purpose_heading: "ಸಾಲದ ಉದ್ದೇಶ",
+            loan_amount: "ಅಗತ್ಯವಿರುವ ಸಾಲದ ಮೊತ್ತ (₹)",
+            loan_purpose: "ಸಾಲದ ಉದ್ದೇಶ",
+            agriculture: "ಕೃಷಿ ಸಾಧನಗಳು/ಬೀಜಗಳು",
+            livestock: "ಪಶುಸಂಗೋಪನೆ ಖರೀದಿ",
+            business_expansion: "ವ್ಯಾಪಾರ ವಿಸ್ತರಣೆ",
+            education: "ಶಿಕ್ಷಣ",
+            healthcare: "ಆರೋಗ್ಯ ಸಂರಕ್ಷಣೆ",
+            home_improvement: "ಮನೆ ಸುಧಾರಣೆ",
+            other_purpose: "ಇತರೆ",
+            loan_tenure: "ಆದ್ಯತೆಯ ಸಾಲದ ಅವಧಿ (ತಿಂಗಳುಗಳು)",
+            phone_number: "ಫೋನ್ ಸಂಖ್ಯೆ",
+            check_eligibility: "ಅರ್ಹತೆ ಪರಿಶೀಲಿಸಿ",
+            approved_heading: "ಅಭಿನಂದನೆಗಳು!",
+            approved_message: "ನೀಡಿದ ಮಾಹಿತಿಯ ಆಧಾರದ ಮೇಲೆ, ನೀವು ಸಣ್ಣ ಸಾಲಕ್ಕೆ ಅರ್ಹರಾಗಿರುವ ಸಾಧ್ಯತೆ ಇದೆ.",
+            approved_detail: "ನಮ್ಮ ಪ್ರತಿನಿಧಿ 24-48 ಗಂಟೆಗಳ ಒಳಗೆ ನಿಮ್ಮನ್ನು ಸಂಪರ್ಕಿಸುತ್ತಾರೆ ಮತ್ತು ನಿಮ್ಮ ಅರ್ಜಿಯನ್ನು ಪೂರ್ಣಗೊಳಿಸಲು ಮುಂದಿನ ಹಂತಗಳಲ್ಲಿ ನಿಮಗೆ ಮಾರ್ಗದರ್ಶನ ನೀಡುತ್ತಾರೆ.",
+            document_prep: "ದಾಖಲೆಗಳನ್ನು ಸಿದ್ಧಪಡಿಸಿ",
+            back_home: "ಮುಖಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಿ",
+            pending_heading: "ಹೆಚ್ಚುವರಿ ಪರಿಶೀಲನೆ ಅಗತ್ಯ",
+            pending_message: "ನಿಮ್ಮ ಅರ್ಹತೆಯನ್ನು ನಿರ್ಧರಿಸಲು ನಮಗೆ ಹೆಚ್ಚಿನ ಮಾಹಿತಿಯ ಅಗತ್ಯವಿದೆ.",
+            pending_detail: "ದಯವಿಟ್ಟು ನಿಮ್ಮ ಗುರುತಿನ ಪುರಾವೆ, ವಿಳಾಸದ ಪುರಾವೆ ಮತ್ತು ಆದಾಯ ದಾಖಲೆಗಳೊಂದಿಗೆ ನಿಮ್ಮ ಹತ್ತಿರದ ವಿತ್ತಮ್.ಎಐ ಸೇವಾ ಕೇಂದ್ರಕ್ಕೆ ಭೇಟಿ ನೀಡಿ.",
+            find_center: "ಸೇವಾ ಕೇಂದ್ರವನ್ನು ಹುಡುಕಿ",
+            rejected_heading: "ನಾವು ಕ್ಷಮೆಯಾಚಿಸುತ್ತೇವೆ",
+            rejected_message: "ನೀಡಿದ ಮಾಹಿತಿಯ ಆಧಾರದ ಮೇಲೆ, ನೀವು ಈ ಸಮಯದಲ್ಲಿ ಸಣ್ಣ ಸಾಲಕ್ಕೆ ಅರ್ಹರಾಗಿರದಿರಬಹುದು.",
+            rejected_detail: "ಚಿಂತೆ ಮಾಡಬೇಡಿ! ನಮ್ಮ ಆರ್ಥಿಕ ಸಲಹೆಗಾರರು ನಿಮ್ಮ ಅರ್ಹತೆಯನ್ನು ಸುಧಾರಿಸಲು ಅಥವಾ ಪರ್ಯಾಯ ಆಯ್ಕೆಗಳನ್ನು ಅನ್ವೇಷಿಸಲು ನಿಮಗೆ ಸಹಾಯ ಮಾಡಬಹುದು.",
+            explore_schemes: "ಸರ್ಕಾರಿ ಯೋಜನೆಗಳನ್ನು ಅನ್ವೇಷಿಸಿ",
+            speak_advisor: "ಸಲಹೆಗಾರರೊಂದಿಗೆ ಮಾತನಾಡಿ"
+        }
+    };
+
+    // Merge loan translations with base translations
+    Object.keys(loanTranslations).forEach(lang => {
+        translations[lang] = { ...translations[lang], ...loanTranslations[lang] };
+    });
+
+    // Form navigation and eligibility check
+    document.addEventListener('DOMContentLoaded', () => {
+        const steps = document.querySelectorAll('.step');
+        const forms = document.querySelectorAll('.form-card');
+        const resultCards = document.querySelectorAll('.result-card');
+
+        // Show/hide forms and update step indicators
+        function showStep(stepNumber) {
+            forms.forEach(form => form.style.display = 'none');
+            resultCards.forEach(card => card.style.display = 'none');
+            document.getElementById(`form-step${stepNumber}`).style.display = 'block';
+            steps.forEach(step => {
+                step.classList.remove('active', 'completed');
+                if (parseInt(step.id.replace('step', '')) < stepNumber) {
+                    step.classList.add('completed');
+                } else if (parseInt(step.id.replace('step', '')) === stepNumber) {
+                    step.classList.add('active');
+                }
+            });
+        }
+
+        // Validate form inputs
+        function validateForm(formId) {
+            const form = document.getElementById(formId);
+            const inputs = form.querySelectorAll('input[required], select[required]');
+            let valid = true;
+            inputs.forEach(input => {
+                if (!input.value) {
+                    input.classList.add('is-invalid');
+                    valid = false;
+                } else {
+                    input.classList.remove('is-invalid');
+                }
+            });
+            return valid;
+        }
+
+        // Existing loans conditional field
+        const existingLoansSelect = document.getElementById('existingLoans');
+        const existingLoanAmountDiv = document.getElementById('existingLoanAmountDiv');
+        existingLoansSelect.addEventListener('change', () => {
+            existingLoanAmountDiv.style.display = existingLoansSelect.value === 'yes' ? 'block' : 'none';
+            const existingLoanAmount = document.getElementById('existingLoanAmount');
+            existingLoanAmount.required = existingLoansSelect.value === 'yes';
+        });
+
+        // Navigation buttons
+        document.getElementById('nextToStep2').addEventListener('click', () => {
+            if (validateForm('basicInfoForm')) {
+                showStep(2);
+            }
+        });
+
+        document.getElementById('backToStep1').addEventListener('click', () => {
+            showStep(1);
+        });
+
+        document.getElementById('nextToStep3').addEventListener('click', () => {
+            if (validateForm('financialInfoForm')) {
+                showStep(3);
+            }
+        });
+
+        document.getElementById('backToStep2').addEventListener('click', () => {
+            showStep(2);
+        });
+
+        // Check eligibility
+        document.getElementById('checkEligibility').addEventListener('click', async () => {
+            if (validateForm('loanPurposeForm')) {
+                const formData = {
+                    fullName: document.getElementById('fullName').value,
+                    age: parseInt(document.getElementById('age').value),
+                    gender: document.getElementById('gender').value,
+                    location: document.getElementById('location').value,
+                    district: document.getElementById('district').value,
+                    state: document.getElementById('state').value,
+                    aadhar: document.getElementById('aadhar').value,
+                    monthlyIncome: parseInt(document.getElementById('monthlyIncome').value),
+                    occupation: document.getElementById('occupation').value,
+                    existingLoans: document.getElementById('existingLoans').value,
+                    existingLoanAmount: document.getElementById('existingLoanAmount').value ? parseInt(document.getElementById('existingLoanAmount').value) : 0,
+                    defaultHistory: document.getElementById('defaultHistory').value,
+                    loanAmount: parseInt(document.getElementById('loanAmount').value),
+                    loanPurpose: document.getElementById('loanPurpose').value,
+                    loanTenure: parseInt(document.getElementById('loanTenure').value),
+                    phoneNumber: document.getElementById('phoneNumber').value
+                };
+
+                try {
+                    const response = await fetch('/check_eligibility', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+                    const result = await response.json();
+                    forms.forEach(form => form.style.display = 'none');
+                    document.getElementById(`result-${result.status}`).style.display = 'block';
+                    steps.forEach(step => step.classList.remove('active', 'completed'));
+                    document.getElementById('step4').classList.add('active');
+                } catch (error) {
+                    console.error('Error checking eligibility:', error);
+                    alert('An error occurred while checking eligibility. Please try again.');
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

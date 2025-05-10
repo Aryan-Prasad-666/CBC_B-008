@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Vittam.ai - Financial Assistance{% endblock %}</title>
+    <!-- Montserrat Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1e5f74; /* Deep teal - trust */
+            --secondary-color: #4d9d7c; /* Medium green - growth */
+            --accent-color: #f3ae4b; /* Warm gold - prosperity */
+            --light-color: #f5f5f5; /* Off-white - clarity */
+            --dark-color: #333333; /* Dark gray - stability */
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f8f9fa;
+            color: var(--dark-color);
+        }
+        
+        .navbar {
+            background-color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: white !important;
+        }
+        
+        .nav-link {
+            color: rgba(255, 255, 255, 0.85) !important;
+            font-weight: 500;
+            margin: 0 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            color: white !important;
+            transform: translateY(-2px);
+        }
+        
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-primary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #3d8b6c;
+            border-color: #3d8b6c;
+        }
+        
+        .btn-outline-primary {
+            color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .accent-text {
+            color: var(--accent-color);
+        }
+        
+        .bg-accent {
+            background-color: var(--accent-color);
+        }
+        
+        .footer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 3rem 0;
+        }
+        
+        .footer a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer a:hover {
+            color: white;
+        }
+        
+        .footer-heading {
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+        
+        .footer-links {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .footer-links li {
+            margin-bottom: 0.75rem;
+        }
+        
+        .social-icons a {
+            display: inline-block;
+            margin-right: 1rem;
+            font-size: 1.25rem;
+        }
+        
+        .language-selector {
+            margin-left: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .footer {
+                text-align: center;
+            }
+            
+            .footer-section {
+                margin-bottom: 2rem;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="fas fa-leaf me-2"></i>Vittam.ai</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="/" data-translate="nav_home">Home</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="financialDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-translate="nav_financial_services">Financial Services</a>
+                        <ul class="dropdown-menu" aria-labelledby="financialDropdown">
+                            <li><a class="dropdown-item" href="/microloan" data-translate="nav_microloan">Microloan Assistance</a></li>
+                            <li><a class="dropdown-item" href="/schemes" data-translate="nav_schemes">Government Schemes</a></li>
+                            <li><a class="dropdown-item" href="/document-analyzer" data-translate="nav_document_analyzer">Document Analyzer</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="/business" data-translate="nav_business_tools">Business Tools</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/expense-tracker" data-translate="nav_expense_tracker">Expense Tracker</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/about" data-translate="nav_about">About Us</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/contact" data-translate="nav_contact">Contact</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="languageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-globe me-1"></i><span data-translate="nav_language">Language</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
+                            <li><a class="dropdown-item" href="?lang=en" data-lang="en">English</a></li>
+                            <li><a class="dropdown-item" href="?lang=hi" data-lang="hi">हिंदी (Hindi)</a></li>
+                            <li><a class="dropdown-item" href="?lang=kn" data-lang="kn">ಕನ್ನಡ (Kannada)</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 col-md-6 footer-section">
+                    <h5 class="footer-heading" data-translate="footer_vittam">Vittam.ai</h5>
+                    <p data-translate="footer_description">Empowering rural communities with accessible financial and business tools for sustainable growth and prosperity.</p>
+                    <div class="social-icons mt-4">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-6 footer-section">
+                    <h5 class="footer-heading" data-translate="footer_services">Services</h5>
+                    <ul class="footer-links">
+                        <li><a href="/microloan" data-translate="footer_microloans">Microloans</a></li>
+                        <li><a href="/schemes" data-translate="footer_schemes">Govt. Schemes</a></li>
+                        <li><a href="/document-analyzer" data-translate="footer_doc_analysis">Doc Analysis</a></li>
+                        <li><a href="/business" data-translate="footer_business_tools">Business Tools</a></li>
+                        <li><a href="/expense-tracker" data-translate="footer_expense_tracker">Expense Tracker</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6 footer-section">
+                    <h5 class="footer-heading" data-translate="footer_company">Company</h5>
+                    <ul class="footer-links">
+                        <li><a href="/about" data-translate="footer_about">About Us</a></li>
+                        <li><a href="/team" data-translate="footer_team">Our Team</a></li>
+                        <li><a href="/careers" data-translate="footer_careers">Careers</a></li>
+                        <li><a href="/blog" data-translate="footer_blog">Blog</a></li>
+                        <li><a href="/contact" data-translate="footer_contact">Contact Us</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4 col-md-6 footer-section">
+                    <h5 class="footer-heading" data-translate="footer_contact_us">Contact Us</h5>
+                    <p><i class="fas fa-map-marker-alt me-2"></i><span data-translate="footer_address">123 Financial District, Bengaluru, Karnataka, India</span></p>
+                    <p><i class="fas fa-phone me-2"></i><span data-translate="footer_phone">+91 9876543210</span></p>
+                    <p><i class="fas fa-envelope me-2"></i><a href="mailto:support@vittam.ai" data-translate="footer_email">support@vittam.ai</a></p>
+                    <div class="mt-3">
+                        <select class="form-select form-select-sm language-selector" id="footer-language" aria-label="Language selector">
+                            <option value="en" data-translate="lang_en">English</option>
+                            <option value="hi" data-translate="lang_hi">हिंदी (Hindi)</option>
+                            <option value="kn" data-translate="lang_kn">ಕನ್ನಡ (Kannada)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <hr class="mt-4 mb-4" style="border-color: rgba(255, 255, 255, 0.1);">
+            <div class="row">
+                <div class="col-md-6 text-center text-md-start">
+                    <p data-translate="footer_copyright">&copy; 2025 Vittam.ai. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <a href="/privacy" class="me-3" data-translate="footer_privacy">Privacy Policy</a>
+                    <a href="/terms" data-translate="footer_terms">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Language Switcher Script -->
+    <script>
+        // Translation object
+        const translations = {
+            en: {
+                nav_home: "Home",
+                nav_financial_services: "Financial Services",
+                nav_microloan: "Microloan Assistance",
+                nav_schemes: "Government Schemes",
+                nav_document_analyzer: "Document Analyzer",
+                nav_business_tools: "Business Tools",
+                nav_expense_tracker: "Expense Tracker",
+                nav_about: "About Us",
+                nav_contact: "Contact",
+                nav_language: "Language",
+                footer_vittam: "Vittam.ai",
+                footer_description: "Empowering rural communities with accessible financial and business tools for sustainable growth and prosperity.",
+                footer_services: "Services",
+                footer_microloans: "Microloans",
+                footer_schemes: "Govt. Schemes",
+                footer_doc_analysis: "Doc Analysis",
+                footer_business_tools: "Business Tools",
+                footer_expense_tracker: "Expense Tracker",
+                footer_company: "Company",
+                footer_about: "About Us",
+                footer_team: "Our Team",
+                footer_careers: "Careers",
+                footer_blog: "Blog",
+                footer_contact: "Contact Us",
+                footer_contact_us: "Contact Us",
+                footer_address: "123 Financial District, Bengaluru, Karnataka, India",
+                footer_phone: "+91 9876543210",
+                footer_email: "support@vittam.ai",
+                footer_copyright: "© 2025 Vittam.ai. All rights reserved.",
+                footer_privacy: "Privacy Policy",
+                footer_terms: "Terms of Service",
+                lang_en: "English",
+                lang_hi: "हिंदी (Hindi)",
+                lang_kn: "ಕನ್ನಡ (Kannada)"
+            },
+            hi: {
+                nav_home: "होम",
+                nav_financial_services: "वित्तीय सेवाएँ",
+                nav_microloan: "माइक्रोलोन सहायता",
+                nav_schemes: "सरकारी योजनाएँ",
+                nav_document_analyzer: "दस्तावेज़ विश्लेषक",
+                nav_business_tools: "व्यवसाय उपकरण",
+                nav_expense_tracker: "खर्च ट्रैकर",
+                nav_about: "हमारे बारे में",
+                nav_contact: "संपर्क करें",
+                nav_language: "भाषा",
+                footer_vittam: "वित्तम.एआई",
+                footer_description: "ग्रामीण समुदायों को सतत विकास और समृद्धि के लिए सुलभ वित्तीय और व्यावसायिक उपकरणों के साथ सशक्त बनाना।",
+                footer_services: "सेवाएँ",
+                footer_microloans: "माइक्रोलोन",
+                footer_schemes: "सरकारी योजनाएँ",
+                footer_doc_analysis: "दस्तावेज़ विश्लेषण",
+                footer_business_tools: "व्यवसाय उपकरण",
+                footer_expense_tracker: "खर्च ट्रैकर",
+                footer_company: "कंपनी",
+                footer_about: "हमारे बारे में",
+                footer_team: "हमारी टीम",
+                footer_careers: "करियर",
+                footer_blog: "ब्लॉग",
+                footer_contact: "संपर्क करें",
+                footer_contact_us: "हमसे संपर्क करें",
+                footer_address: "123 वित्तीय जिला, बेंगलुरु, कर्नाटक, भारत",
+                footer_phone: "+91 9876543210",
+                footer_email: "support@vittam.ai",
+                footer_copyright: "© 2025 वित्तम.एआई। सभी अधिकार सुरक्षित।",
+                footer_privacy: "गोपनीयता नीति",
+                footer_terms: "सेवा की शर्तें",
+                lang_en: "अंग्रेजी",
+                lang_hi: "हिंदी",
+                lang_kn: "कन्नड़"
+            },
+            kn: {
+                nav_home: "ಮುಖಪುಟ",
+                nav_financial_services: "ಆರ್ಥಿಕ ಸೇವೆಗಳು",
+                nav_microloan: "ಸಣ್ಣ ಸಾಲ ಸಹಾಯ",
+                nav_schemes: "ಸರ್ಕಾರಿ ಯೋಜನೆಗಳು",
+                nav_document_analyzer: "ದಾಖಲೆ ವಿಶ್ಲೇಷಕ",
+                nav_business_tools: "ವ್ಯಾಪಾರ ಸಾಧನಗಳು",
+                nav_expense_tracker: "ವೆಚ್ಚ ಟ್ರ್ಯಾಕರ್",
+                nav_about: "ನಮ್ಮ ಬಗ್ಗೆ",
+                nav_contact: "ಸಂಪರ್ಕಿಸಿ",
+                nav_language: "ಭಾಷೆ",
+                footer_vittam: "ವಿತ್ತಮ್.ಎಐ",
+                footer_description: "ಗ್ರಾಮೀಣ ಸಮುದಾಯಗಳನ್ನು ಸುಸ್ಥಿರ ಬೆಳವಣಿಗೆ ಮತ್ತು ಸಮೃದ್ಧಿಗಾಗಿ ಸುಲಭವಾದ ಆರ್ಥಿಕ ಮತ್ತು ವ್ಯಾಪಾರ ಸಾಧನಗಳೊಂದಿಗೆ ಸಬಲೀಕರಣಗೊಳಿಸುವುದು.",
+                footer_services: "ಸೇವೆಗಳು",
+                footer_microloans: "ಸಣ್ಣ ಸಾಲಗಳು",
+                footer_schemes: "ಸರ್ಕಾರಿ ಯೋಜನೆಗಳು",
+                footer_doc_analysis: "ದಾಖಲೆ ವಿಶ್ಲೇಷಣೆ",
+                footer_business_tools: "ವ್ಯಾಪಾರ ಸಾಧನಗಳು",
+                footer_expense_tracker: "ವೆಚ್ಚ ಟ್ರ್ಯಾಕರ್",
+                footer_company: "ಕಂಪನಿ",
+                footer_about: "ನಮ್ಮ ಬಗ್ಗೆ",
+                footer_team: "ನಮ್ಮ ತಂಡ",
+                footer_careers: "ವೃತ್ತಿಗಳು",
+                footer_blog: "ಬ್ಲಾಗ್",
+                footer_contact: "ಸಂಪರ್ಕಿಸಿ",
+                footer_contact_us: "ನಮ್ಮನ್ನು ಸಂಪರ್ಕಿಸಿ",
+                footer_address: "123 ಆರ್ಥಿಕ ಜಿಲ್ಲೆ, ಬೆಂಗಳೂರು, ಕರ್ನಾಟಕ, ಭಾರತ",
+                footer_phone: "+91 9876543210",
+                footer_email: "support@vittam.ai",
+                footer_copyright: "© 2025 ವಿತ್ತಮ್.ಎಐ. ಎಲ್ಲಾ ಹಕ್ಕುಗಳು ಕಾಯ್ದಿರಿಸಲಾಗಿದೆ.",
+                footer_privacy: "ಗೌಪ್ಯತೆ ನೀತಿ",
+                footer_terms: "ಸೇವೆಯ ಷರತ್ತುಗಳು",
+                lang_en: "ಇಂಗ್ಲಿಷ್",
+                lang_hi: "ಹಿಂದಿ",
+                lang_kn: "ಕನ್ನಡ"
+            }
+        };
+
+        // Function to get the current language from URL
+        function getCurrentLanguage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('lang') || 'en'; // Default to English
+        }
+
+        // Function to update content based on language
+        function updateContent(lang) {
+            document.querySelectorAll('[data-translate]').forEach(element => {
+                const key = element.getAttribute('data-translate');
+                if (translations[lang] && translations[lang][key]) {
+                    element.textContent = translations[lang][key];
+                }
+            });
+            // Update language selectors
+            document.querySelectorAll('.language-selector, #language').forEach(select => {
+                select.value = lang;
+            });
+        }
+
+        // Initialize content based on URL language
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentLang = getCurrentLanguage();
+            updateContent(currentLang);
+
+            // Handle navbar dropdown language change
+            document.querySelectorAll('.dropdown-menu [data-lang]').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const lang = item.getAttribute('data-lang');
+                    const newUrl = new URL(window.location);
+                    newUrl.searchParams.set('lang', lang);
+                    window.history.pushState({}, '', newUrl);
+                    updateContent(lang);
+                });
+            });
+
+            // Handle footer language selector
+            const footerSelect = document.getElementById('footer-language');
+            if (footerSelect) {
+                footerSelect.addEventListener('change', (e) => {
+                    const lang = e.target.value;
+                    const newUrl = new URL(window.location);
+                    newUrl.searchParams.set('lang', lang);
+                    window.history.pushState({}, '', newUrl);
+                    updateContent(lang);
+                });
+            }
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
