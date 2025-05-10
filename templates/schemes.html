@@ -1,0 +1,348 @@
+{% extends "base.html" %}
+
+{% block title %}
+<span data-translate="schemes_finder_title">Vittam.ai - Find Government Schemes</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(rgba(30, 95, 116, 0.8), rgba(30, 95, 116, 0.9)), url('https://source.unsplash.com/random/1200x800/?rural,india');
+        background-size: cover;
+        background-position: center;
+        color: white;
+        padding: 4rem 0;
+        margin-bottom: 3rem;
+    }
+    
+    .search-form {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .scheme-card-container {
+        padding: 0.75rem; /* Adds spacing around each card */
+    }
+    
+    .scheme-card {
+        border: none;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        margin-bottom: 2rem; /* Increased for more vertical spacing */
+        height: 100%; /* Ensure card takes full height */
+    }
+    
+    .scheme-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .scheme-card .card-body {
+        display: flex;
+        flex-direction: column;
+        min-height: 300px; /* Ensure consistent card height */
+        padding: 1.5rem; /* Improved internal spacing */
+    }
+    
+    .scheme-card .btn {
+        margin-top: auto; /* Push button to bottom */
+        align-self: flex-start; /* Align button to left */
+    }
+    
+    .scheme-icon {
+        font-size: 2rem;
+        color: var(--primary-color);
+    }
+    
+    .results-container {
+        margin-top: 2rem;
+    }
+    
+    .no-results, .error-message {
+        text-align: center;
+        padding: 3rem;
+    }
+    
+    .error-message {
+        color: #d9534f;
+    }
+    
+    .loading-container {
+        display: none;
+        text-align: center;
+        padding: 2rem;
+    }
+    
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+        color: var(--primary-color);
+    }
+    
+    .info-box {
+        background-color: var(--light-color);
+        border-left: 4px solid var(--accent-color);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border-radius: 0.25rem;
+    }
+    
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 2rem 0;
+        }
+        
+        .search-form {
+            padding: 1rem;
+        }
+        
+        .scheme-card .card-body {
+            min-height: 250px; /* Slightly smaller for mobile */
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold" data-translate="schemes_finder_title">Government Schemes Finder</h1>
+        <p class="lead" data-translate="schemes_finder_subtitle">Discover government schemes available in your area to support your needs</p>
+    </div>
+</section>
+
+<!-- Main Content -->
+<div class="container mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Info Box -->
+            <div class="info-box">
+                <h5 class="mb-2" data-translate="why_use_schemes_finder">Why use our Schemes Finder?</h5>
+                <p class="mb-0" data-translate="schemes_finder_info">Our Schemes Finder helps you find the latest government schemes tailored to your location. Access financial aid, employment opportunities, housing, and more. Enter your village/town, district, and state below to explore available schemes.</p>
+            </div>
+            
+            <!-- Search Form -->
+            <div class="search-form mb-4">
+                <h3 class="text-center mb-4" data-translate="enter_location">Enter Your Location</h3>
+                <form id="schemesSearchForm">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="location" class="form-label" data-translate="village_town">Village/Town</label>
+                            <input type="text" class="form-control" id="location" placeholder="e.g., Shivamogga" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="district" class="form-label" data-translate="district">District</label>
+                            <input type="text" class="form-control" id="district" placeholder="e.g., Shivamogga" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="state" class="form-label" data-translate="state">State</label>
+                            <input type="text" class="form-control" id="state" placeholder="e.g., Karnataka" required>
+                        </div>
+                        <div class="col-12 text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg px-5" data-translate="find_schemes">Find Schemes</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Loading Indicator -->
+            <div id="loadingContainer" class="loading-container">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3" data-translate="searching_schemes">Searching for schemes in your area...</p>
+            </div>
+            
+            <!-- Results Container -->
+            <div id="resultsContainer" class="results-container" style="display: none;">
+                <h3 class="mb-4 text-center" data-translate="schemes_near_you">Schemes Available Near You</h3>
+                <div id="schemesList" class="row g-4"></div>
+            </div>
+            
+            <!-- No Results Container -->
+            <div id="noResultsContainer" class="no-results" style="display: none;">
+                <i class="fas fa-search fa-3x mb-3 text-muted"></i>
+                <h4 data-translate="no_schemes_found">No schemes found for this location</h4>
+                <p data-translate="try_different_location">Please try a different location or check your spelling.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Translation additions for schemes finder page
+    translations.en = {
+        ...translations.en,
+        schemes_finder_title: "Government Schemes Finder",
+        schemes_finder_subtitle: "Discover government schemes available in your area to support your needs",
+        why_use_schemes_finder: "Why use our Schemes Finder?",
+        schemes_finder_info: "Our Schemes Finder helps you find the latest government schemes tailored to your location. Access financial aid, employment opportunities, housing, and more. Enter your village/town, district, and state below to explore available schemes.",
+        enter_location: "Enter Your Location",
+        village_town: "Village/Town",
+        district: "District",
+        state: "State",
+        find_schemes: "Find Schemes",
+        searching_schemes: "Searching for schemes in your area...",
+        schemes_near_you: "Schemes Available Near You",
+        no_schemes_found: "No schemes found for this location",
+        try_different_location: "Please try a different location or check your spelling.",
+        learn_more: "Learn More",
+        eligibility: "Eligibility",
+        schemes_found: "schemes found for your location",
+        error_invalid_input: "Please provide valid location details.",
+        error_api: "Error fetching scheme data. Please try again later."
+    };
+    
+    translations.hi = {
+        ...translations.hi,
+        schemes_finder_title: "सरकारी योजना खोजक",
+        schemes_finder_subtitle: "अपने क्षेत्र में उपलब्ध सरकारी योजनाओं को खोजें जो आपकी आवश्यकताओं का समर्थन करती हैं",
+        why_use_schemes_finder: "हमारा योजना खोजक क्यों उपयोग करें?",
+        schemes_finder_info: "हमारा योजना खोजक आपको आपके स्थान के लिए नवीनतम सरकारी योजनाओं को खोजने में मदद करता है। वित्तीय सहायता, रोजगार के अवसर, आवास और अधिक तक पहुंचें। नीचे अपने गांव/शहर, जिला और राज्य दर्ज करें।",
+        enter_location: "अपना स्थान दर्ज करें",
+        village_town: "गांव/शहर",
+        district: "जिला",
+        state: "राज्य",
+        find_schemes: "योजनाएं खोजें",
+        searching_schemes: "आपके क्षेत्र में योजनाओं की खोज कर रहे हैं...",
+        schemes_near_you: "आपके पास उपलब्ध योजनाएं",
+        no_schemes_found: "इस स्थान के लिए कोई योजना नहीं मिली",
+        try_different_location: "कृपया अलग स्थान आज़माएं या अपनी वर्तनी जांचें।",
+        learn_more: "अधिक जानें",
+        eligibility: "पात्रता",
+        schemes_found: "योजनाएं आपके स्थान के लिए मिलीं",
+        error_invalid_input: "कृपया मान्य स्थान विवरण प्रदान करें।",
+        error_api: "योजना डेटा प्राप्त करने में त्रुटि। कृपया बाद में पुनः प्रयास करें।"
+    };
+    
+    translations.kn = {
+        ...translations.kn,
+        schemes_finder_title: "ಸರ್ಕಾರಿ ಯೋಜನೆಗಳ ಹುಡುಕಾಟ",
+        schemes_finder_subtitle: "ನಿಮ್ಮ ಅಗತ್ಯಗಳನ್ನು ಬೆಂಬಲಿಸಲು ನಿಮ್ಮ ಪ್ರದೇಶದಲ್ಲಿ ಲಭ್ಯವಿರುವ ಸರ್ಕಾರಿ ಯೋಜನೆಗಳನ್ನು ಕಂಡುಕೊಳ್ಳಿ",
+        why_use_schemes_finder: "ನಮ್ಮ ಯೋಜನೆಗಳ ಹುಡುಕಾಟವನ್ನು ಏಕೆ ಬಳಸಬೇಕು?",
+        schemes_finder_info: "ನಮ್ಮ ಯೋಜನೆಗಳ ಹುಡುಕಾಟವು ನಿಮ್ಮ ಸ್ಥಳಕ್ಕೆ ಸೂಕ್ತವಾದ ಇತ್ತೀಚಿನ ಸರ್ಕಾರಿ ಯೋಜನೆಗಳನ್ನು ಕಂಡುಹಿಡಿಯಲು ಸಹಾಯ ಮಾಡುತ್ತದೆ. ಹಣಕಾಸಿನ ಸಹಾಯ, ಉದ್ಯೋಗಾವಕಾಶಗಳು, ವಸತಿ ಮತ್ತು ಇನ್ನಷ್ಟನ್ನು ಪಡೆಯಿರಿ. ಕೆಳಗೆ ನಿಮ್ಮ ಗ್ರಾಮ/ಪಟ್ಟಣ, ಜಿಲ್ಲೆ ಮತ್ತು ರಾಜ್ಯವನ್ನು ನಮೂದಿಸಿ.",
+        enter_location: "ನಿಮ್ಮ ಸ್ಥಳವನ್ನು ನಮೂದಿಸಿ",
+        village_town: "ಗ್ರಾಮ/ಪಟ್ಟಣ",
+        district: "ಜಿಲ್ಲೆ",
+        state: "ರಾಜ್ಯ",
+        find_schemes: "ಯೋಜನೆಗಳನ್ನು ಹುಡುಕಿ",
+        searching_schemes: "ನಿಮ್ಮ ಪ್ರದೇಶದಲ್ಲಿ ಯೋಜನೆಗಳನ್ನು ಹುಡುಕುತ್ತಿದ್ದೇವೆ...",
+        schemes_near_you: "ನಿಮ್ಮ ಹತ್ತಿರ ಲಭ್ಯವಿರುವ ಯೋಜನೆಗಳು",
+        no_schemes_found: "ಈ ಸ್ಥಳಕ್ಕೆ ಯಾವುದೇ ಯೋಜನೆಗಳು ಕಂಡುಬಂದಿಲ್ಲ",
+        try_different_location: "ದಯವಿಟ್ಟು ಬೇರೆ ಸ್ಥಳವನ್ನು ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ನಿಮ್ಮ ಕಾಗುಣಿತವನ್ನು ಪರಿಶೀಲಿಸಿ.",
+        learn_more: "ಇನ್ನಷ್ಟು ತಿಳಿಯಿರಿ",
+        eligibility: "ಅರ್ಹತೆ",
+        schemes_found: "ಯೋಜನೆಗಳು ನಿಮ್ಮ ಸ್ಥಳಕ್ಕೆ ಕಂಡುಬಂದಿವೆ",
+        error_invalid_input: "ದಯವಿಟ್ಟು ಮಾನ್ಯ ಸ್ಥಳದ ವಿವರಗಳನ್ನು ಒದಗಿಸಿ.",
+        error_api: "ಯೋಜನೆ ಡೇಟಾವನ್ನು ಪಡೆಯುವಲ್ಲಿ ದೋಷ. ದಯವಿಟ್ಟು ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ."
+    };
+
+    // Handle schemes search form submission
+    document.addEventListener('DOMContentLoaded', () => {
+        const schemesSearchForm = document.getElementById('schemesSearchForm');
+        const loadingContainer = document.getElementById('loadingContainer');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const noResultsContainer = document.getElementById('noResultsContainer');
+        const currentLanguage = getCurrentLanguage();
+        updateContent(currentLanguage);
+
+        schemesSearchForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Get form values
+            const location = document.getElementById('location').value.trim();
+            const district = document.getElementById('district').value.trim();
+            const state = document.getElementById('state').value.trim();
+            
+            // Validate inputs
+            if (!location || !district || !state) {
+                noResultsContainer.innerHTML = `<h4 class="error-message" data-translate="error_invalid_input">${translations[currentLanguage].error_invalid_input}</h4>`;
+                noResultsContainer.style.display = 'block';
+                resultsContainer.style.display = 'none';
+                return;
+            }
+            
+            // Show loading, hide results and no results
+            loadingContainer.style.display = 'block';
+            resultsContainer.style.display = 'none';
+            noResultsContainer.style.display = 'none';
+            
+            try {
+                // Make API request to find schemes
+                const response = await fetch('/find_schemes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ location, district, state })
+                });
+                
+                const data = await response.json();
+                
+                // Hide loading
+                loadingContainer.style.display = 'none';
+                
+                if (data.error) {
+                    // Show error message
+                    noResultsContainer.innerHTML = `<h4 class="error-message" data-translate="error_api">${translations[currentLanguage].error_api}</h4>`;
+                    noResultsContainer.style.display = 'block';
+                    console.error('Error:', data.error);
+                } else if (data.schemes && data.schemes.length > 0) {
+                    // Show results
+                    resultsContainer.style.display = 'block';
+                    
+                    // Display schemes
+                    const schemesListContainer = document.getElementById('schemesList');
+                    schemesListContainer.innerHTML = '';
+                    
+                    // Show the number of schemes found
+                    const schemesFoundCount = document.createElement('div');
+                    schemesFoundCount.className = 'col-12 mb-3';
+                    schemesFoundCount.innerHTML = `<p class="lead text-center"><strong>${data.schemes.length}</strong> ${translations[currentLanguage].schemes_found}</p>`;
+                    schemesListContainer.appendChild(schemesFoundCount);
+                    
+                    // Display each scheme
+                    data.schemes.forEach((scheme, index) => {
+                        const schemeCard = document.createElement('div');
+                        schemeCard.className = 'col-md-6 col-lg-4 scheme-card-container';
+                        schemeCard.innerHTML = `
+                            <div class="card scheme-card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="me-3">
+                                            <div class="scheme-icon rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                <span class="fw-bold">${index + 1}</span>
+                                            </div>
+                                        </div>
+                                        <h5 class="card-title mb-0">${scheme.name}</h5>
+                                    </div>
+                                    <p class="card-text mb-3">${scheme.description}</p>
+                                    <p class="card-text mb-3"><strong data-translate="eligibility">${translations[currentLanguage].eligibility}:</strong> ${scheme.eligibility}</p>
+                                    <a href="${scheme.link}" target="_blank" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-info-circle me-1"></i> ${translations[currentLanguage].learn_more}
+                                    </a>
+                                </div>
+                            </div>
+                        `;
+                        schemesListContainer.appendChild(schemeCard);
+                    });
+                } else {
+                    // Show no results
+                    noResultsContainer.style.display = 'block';
+                }
+            } catch (error) {
+                // Hide loading, show error message
+                loadingContainer.style.display = 'none';
+                noResultsContainer.innerHTML = `<h4 class="error-message" data-translate="error_api">${translations[currentLanguage].error_api}</h4>`;
+                noResultsContainer.style.display = 'block';
+                console.error('Error:', error);
+            }
+        });
+    });
+</script>
+{% endblock %}
