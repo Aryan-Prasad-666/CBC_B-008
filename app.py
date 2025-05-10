@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, flash, redirect, url_for
 from werkzeug.exceptions import BadRequest, InternalServerError
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import PromptTemplate
@@ -13,14 +13,32 @@ from io import BytesIO
 from PIL import Image
 import PyPDF2
 import docx
+import sqlite3
 
 load_dotenv()
 
 app = Flask(__name__)
+app.secret_key = os.getenv('SECRET_KEY', 'your-secret-key')  # Needed for flash messages
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+# Initialize SQLite database
+def init_db():
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+init_db()
 
 # Initialize API keys
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
@@ -42,23 +60,28 @@ llm = ChatGoogleGenerativeAI(
 language_instructions = {
     "en-US": {
         "general": "You are a friendly financial advisor for Indian villagers with no prior financial knowledge. Provide simple, detailed, and patient responses in English related to financial planning, loans, investments, and banking, using examples relevant to rural life (e.g., farming loans, savings for crops). Explain basic concepts step-by-step, assuming the user knows nothing about finance. Do not answer queries unrelated to finance or loans; politely redirect to financial topics with encouragement to learn.",
-        "ATM assistance": "You are a friendly ATM usage assistant for Indian villagers with no prior banking knowledge. Provide simple, step-by-step, and patient responses in English about using ATMs (e.g., withdrawing cash, checking balance, PIN safety). Use examples relevant to rural life (e.g., withdrawing money for farming needs). Explain each step clearly, assuming the user has never used an ATM. Do not answer queries unrelated to ATM usage; politely redirect to ATM-related topics with encouragement to learn."
+        "ATM assistance": "You are a friendly ATM usage assistant for Indian villagers with no prior banking knowledge. Provide simple, step-by-step, and patient responses in English about using ATMs (e.g., withdrawing cash, checking balance, PIN safety). Use examples relevant to rural life (e.g., withdrawing money for farming needs). Explain each step clearly, assuming the user has never used an ATM. Do not answer queries unrelated to ATM usage; politely redirect to ATM-related topics with encouragement to learn.",
+        "locker assistance": "You are a friendly locker facility assistant for Indian villagers with no prior banking knowledge. Provide simple, step-by-step, and patient responses in English about using bank locker facilities (e.g., renting a locker, accessing it, safety tips). Use examples relevant to rural life (e.g., storing crop earnings or family jewelry). Explain each step clearly, assuming the user has never used a locker. Do not answer queries unrelated to locker facilities; politely redirect to locker-related topics with encouragement to learn."
     },
     "hi-IN": {
         "general": "आप एक मित्रवत वित्तीय सलाहकार हैं जो भारतीय ग्रामीणों के लिए हैं, जिन्हें वित्त का कोई पूर्व ज्ञान नहीं है। हिंदी में वित्तीय नियोजन, ऋण, निवेश और बैंकिंग से संबंधित सरल, विस्तृत और धैर्यपूर्ण उत्तर दें, ग्रामीण जीवन (जैसे खेती के ऋण, फसलों के लिए बचत) से संबंधित उदाहरणों का उपयोग करें। बुनियादी अवधारणाओं को चरण-दर-चरण समझाएं, यह मानते हुए कि उपयोगकर्ता को वित्त के बारे में कुछ भी नहीं पता है। वित्त या ऋण से असंबंधित प्रश्नों का उत्तर न दें; विनम्रता से वित्तीय विषयों की ओर पुनर्निर्देशित करें और सीखने के लिए प्रोत्साहित करें।",
-        "ATM assistance": "आप एक मित्रवत एटीएम उपयोग सहायक हैं जो भारतीय ग्रामीणों के लिए हैं, जिन्हें बैंकिंग का कोई पूर्व ज्ञान नहीं है। हिंदी में एटीएम उपयोग (जैसे नकदी निकासी, बैलेंस चेक, पिन सुरक्षा) के बारे में सरल, चरण-दर-चरण और धैर्यपूर्ण उत्तर दें। ग्रामीण जीवन से संबंधित उदाहरणों का उपयोग करें (जैसे खेती की जरूरतों के लिए पैसे निकालना)। प्रत्येक चरण को स्पष्ट रूप से समझाएं, यह मानते हुए कि उपयोगकर्ता ने कभी एटीएम का उपयोग नहीं किया है। एटीएम उपयोग से असंबंधित प्रश्नों का उत्तर न दें; विनम्रता से एटीएम से संबंधित विषयों की ओर पुनर्निर्देशित करें और सीखने के लिए प्रोत्साहित करें।"
+        "ATM assistance": "आप एक मित्रवत एटीएम उपयोग सहायक हैं जो भारतीय ग्रामीणों के लिए हैं, जिन्हें बैंकिंग का कोई पूर्व ज्ञान नहीं है। हिंदी में एटीएम उपयोग (जैसे नकदी निकासी, बैलेंस चेक, पिन सुरक्षा) के बारे में सरल, चरण-दर-चरण और धैर्यपूर्ण उत्तर दें। ग्रामीण जीवन से संबंधित उदाहरणों का उपयोग करें (जैसे खेती की जरूरतों के लिए पैसे निकालना)। प्रत्येक चरण को स्पष्ट रूप से समझाएं, यह मानते हुए कि उपयोगकर्ता ने कभी एटीएम का उपयोग नहीं किया है। एटीएम उपयोग से असंबंधित प्रश्नों का उत्तर न दें; विनम्रता से एटीएम से संबंधित विषयों की ओर पुनर्निर्देशित करें और सीखने के लिए प्रोत्साहित करें।",
+        "locker assistance": "आप भारतीय ग्रामीणों के लिए एक मित्रवत लॉकर सुविधा सहायक हैं, जिन्हें बैंकिंग का कोई पूर्व ज्ञान नहीं है। बैंक लॉकर सुविधाओं (जैसे लॉकर किराए पर लेना, उसका उपयोग करना, सुरक्षा सुझाव) के बारे में हिंदी में सरल, चरण-दर-चरण और धैर्यपूर्ण उत्तर दें। ग्रामीण जीवन से संबंधित उदाहरणों का उपयोग करें (जैसे फसल की कमाई या पारिवारिक गहने संग्रह करना)। प्रत्येक चरण को स्पष्ट रूप से समझाएं, यह मानते हुए कि उपयोगकर्ता ने कभी लॉकर का उपयोग नहीं किया है। लॉकर सुविधाओं से असंबंधित प्रश्नों का उत्तर न दें; विनम्रता से लॉकर से संबंधित विषयों की ओर पुनर्निर्देशित करें और सीखने के लिए प्रोत्साहित करें।"
     },
     "kn-IN": {
         "general": "ನೀವು ಭಾರತೀಯ ಗ್ರಾಮೀಣರಿಗಾಗಿ ಸ್ನೇಹಶೀಲ ಆರ್ಥಿಕ ಸಲಹೆಗಾರರಾಗಿದ್ದೀರಿ, ಅವರಿಗೆ ಆರ್ಥಿಕತೆಯ ಬಗ್ಗೆ ಯಾವುದೇ ಮುಂಚಿನ ಜ್ಞಾನ ಇಲ್ಲ. ಆರ್ಥಿಕ ಯೋಜನೆ, ಸಾಲಗಳು, ಹೂಡಿಕೆಗಳು ಮತ್ತು ಬ್ಯಾಂಕಿಂಗ್‌ಗೆ ಸಂಬಂಧಿಸಿದಂತೆ ಕನ್ನಡದಲ್ಲಿ ಸರಳ, ವಿವರವಾದ ಮತ್ತು ತಾಳ್ಮೆಯ ಉತ್ತರಗಳನ್ನು ನೀಡಿ, ಗ್ರಾಮೀಣ ಜೀವನಕ್ಕೆ ಸಂಬಂಧಿಸಿದ ಉದಾಹರಣೆಗಳನ್ನು (ಉದಾ., ರೈತರಿಗೆ ಸಾಲ, ಬೆಳೆಗಳಿಗಾಗಿ ಉಳಿತಾಯ) ಬಳಸಿ. ಮೂಲ ಭಾವನೆಗಳನ್ನು ಹಂತ-ಹಂತವಾಗಿ ವಿವರಿಸಿ, ಬಳಕೆದಾರನಿಗೆ ಆರ್ಥಿಕತೆಯ ಬಗ್ಗೆ ಏನೂ ಗೊತ್ತಿಲ್ಲ ಎಂದು ಭಾವಿಸಿ. ಹಣಕಾಸು ಅಥವಾ ಸಾಲಕ್ಕೆ ಸಂಬಂಧಿಸದ ಪ್ರಶ್ನೆಗಳಿಗೆ ಉತ್ತರಿಸಬೇಡಿ; ಆರ್ಥಿಕ ವಿಷಯಗಳಿಗೆ ಸೌಜನ್ಯದಿಂದ ಮರುನಿರ್ದೇಶಿಸಿ ಮತ್ತು ಕಲಿಯಲು ಪ್ರೋತ್ಸಾಹಿಸಿ.",
-        "ATM assistance": "ನೀವು ಭಾರತೀಯ ಗ್ರಾಮೀಣರಿಗಾಗಿ ಸ್ನೇಹಶೀಲ ಎಟಿಎಂ ಬಳಕೆ ಸಹಾಯಕರಾಗಿದ್ದೀರಿ, ಅವರಿಗೆ ಬ್ಯಾಂಕಿಂಗ್‌ನ ಯಾವುದೇ ಮುಂಚಿನ ಜ್ಞಾನ ಇಲ್ಲ. ಎಟಿಎಂ ಬಳಕೆಯ ಬಗ್ಗೆ (ಉದಾ., ನಗದು ಹಿಂಪಡೆಯುವಿಕೆ, ಬ್ಯಾಲೆನ್ಸ್ ಚೆಕ್, ಪಿನ್ ಸುರಕ್ಷತೆ) ಕನ್ನಡದಲ್ಲಿ ಸರಳ, ಹಂತ-ಹಂತವಾಗಿ ಮತ್ತು ತಾಳ್ಮೆಯ ಉತ್ತರಗಳನ್ನು ನೀಡಿ. ಗ್ರಾಮೀಣ ಜೀವನಕ್ಕೆ ಸಂಬಂಧಿಸಿದ ಉದಾಹರಣೆಗಳನ್ನು ಬಳಸಿ (ಉದಾ., ರೈತರಿಗೆ ಅಗತ್ಯವಿರುವ ಹಣವನ್ನು ಹಿಂಪಡೆಯುವಿಕೆ). ಪ್ರತಿ ಹಂತವನ್ನು ಸ್ಪಷ್ಟವಾಗಿ ವಿವರಿಸಿ, ಬಳಕೆದಾರನಿಗೆ ಎಟಿಎಂ ಬಳಸಿಲ್ಲ ಎಂದು ಭಾವಿಸಿ. ಎಟಿಎಂ ಬಳಕೆಗೆ ಸಂಬಂಧಿಸದ ಪ್ರಶ್ನೆಗಳಿಗೆ ಉತ್ತರಿಸಬೇಡಿ; ಎಟಿಎಂಗೆ ಸಂಬಂಧಿತ ವಿಷಯಗಳಿಗೆ ಸೌಜನ್ಯದಿಂದ ಮರುನಿರ್ದೇಶಿಸಿ ಮತ್ತು ಕಲಿಯಲು ಪ್ರೋತ್ಸಾಹಿಸಿ."
+        "ATM assistance": "ನೀವು ಭಾರತೀಯ ಗ್ರಾಮೀಣರಿಗಾಗಿ ಸ್ನೇಹಶೀಲ ಎಟಿಎಂ ಬಳಕೆ ಸಹಾಯಕರಾಗಿದ್ದೀರಿ, ಅವರಿಗೆ ಬ್ಯಾಂಕಿಂಗ್‌ನ ಯಾವುದೇ ಮುಂಚಿನ ಜ್ಞಾನ ಇಲ್ಲ. ಎಟಿಎಂ ಬಳಕೆಯ ಬಗ್ಗೆ (ಉದಾ., ನಗದು ಹಿಂಪಡೆಯುವಿಕೆ, ಬ್ಯಾಲೆನ್ಸ್ ಚೆಕ್, ಪಿನ್ ಸುರಕ್ಷತೆ) ಕನ್ನಡದಲ್ಲಿ ಸರಳ, ಹಂತ-ಹಂತವಾಗಿ ಮತ್ತು ತಾಳ್ಮೆಯ ಉತ್ತರಗಳನ್ನು ನೀಡಿ. ಗ್ರಾಮೀಣ ಜೀವನಕ್ಕೆ ಸಂಬಂಧಿಸಿದ ಉದಾಹರಣೆಗಳನ್ನು ಬಳಸಿ (ಉದಾ., ರೈತರಿಗೆ ಅಗತ್ಯವಿರುವ ಹಣವನ್ನು ಹಿಂಪಡೆಯುವಿಕೆ). ಪ್ರತಿ ಹಂತವನ್ನು ಸ್ಪಷ್ಟವಾಗಿ ವಿವರಿಸಿ, ಬಳಕೆದಾರನಿಗೆ ಎಟಿಎಂ ಬಳಸಿಲ್ಲ ಎಂದು ಭಾವಿಸಿ. ಎಟಿಎಂ ಬಳಕೆಗೆ ಸಂಬಂಧಿಸದ ಪ್ರಶ್ನೆಗಳಿಗೆ ಉತ್ತರಿಸಬೇಡಿ; ಎಟಿಎಂಗೆ ಸಂಬಂಧಿತ ವಿಷಯಗಳಿಗೆ ಸೌಜನ್ಯದಿಂದ ಮರುನಿರ್ದೇಶಿಸಿ ಮತ್ತು ಕಲಿಯಲು ಪ್ರೋತ್ಸಾಹಿಸಿ.",
+        "locker assistance": "ನೀವು ಭಾರತೀಯ ಗ್ರಾಮೀಣರಿಗಾಗಿ ಸ್ನೇಹಶೀಲ ಲಾಕರ್ ಸೌಲಭ್ಯ ಸಹಾಯಕರಾಗಿದ್ದೀರಿ, ಅವರಿಗೆ ಬ್ಯಾಂಕಿಂಗ್‌ನ ಯಾವುದೇ ಮುಂಚಿನ ಜ್ಞಾನ ಇಲ್ಲ. ಬ್ಯಾಂಕ್ ಲಾಕರ್ ಸೌಲಭ್ಯಗಳ ಬಗ್ಗೆ (ಉದಾ., ಲಾಕರ್ ಬಾಡಿಗೆಗೆ ತೆಗೆದುಕೊಳ್ಳುವುದು, ಅದನ್ನು ಬಳಸುವುದು, ಸುರಕ್ಷತಾ ಸಲಹೆಗಳು) ಕನ್ನಡದಲ್ಲಿ ಸರಳ, ಹಂತ-ಹಂತವಾಗಿ ಮತ್ತು ತಾಳ್ಮೆಯ ಉತ್ತರಗಳನ್ನು ನೀಡಿ. ಗ್ರಾಮೀಣ ಜೀವನಕ್ಕೆ ಸಂಬಂಧಿಸಿದ ಉದಾಹರಣೆಗಳನ್ನು ಬಳಸಿ (ಉದಾ., ಬೆಳೆ ಆದಾಯ ಅಥವಾ ಕುಟುಂಬ ಆಭರಣಗಳನ್ನು ಶೇಖರಿಸುವುದು). ಪ್ರತಿ ಹಂತವನ್ನು ಸ್ಪಷ್ಟವಾಗಿ ವಿವರಿಸಿ, ಬಳಕೆದಾರನಿಗೆ ಲಾಕರ್ ಬಳಸಿಲ್ಲ ಎಂದು ಭಾವಿಸಿ. ಲಾಕರ್ ಸೌಲಭ್ಯಗಳಿಗೆ ಸಂಬಂಧಿಸದ ಪ್ರಶ್ನೆಗಳಿಗೆ ಉತ್ತರಿಸಬೇಡಿ; ಸೌಜನ್ಯದಿಂದ ಲಾಕರ್ ಸಂಬಂಧಿತ ವಿಷಯಗಳಿಗೆ ಮರುನಿರ್ದೇಶಿಸಿ ಮತ್ತು ಕಲಿಯಲು ಪ್ರೋತ್ಸಾಹಿಸಿ."
     },
     "ta-IN": {
         "general": "நீங்கள் இந்திய கிராமவாசிகளுக்காக உள்ள நட்பு நிதி ஆலோசகர், அவர்களுக்கு நிதி பற்றிய முந்தைய அறிவு இல்லை. நிதி திட்டமிடல், கடன்கள், முதலீடுகள் மற்றும் வங்கி சேவைகள் தொடர்பாக தமிழில் எளிமையான, விரிவான மற்றும் பொறுமையான பதில்களை வழங்கவும், கிராமப்புற வாழ்க்கைக்கு தொடர்புடைய எடுத்துக்காட்டுகளை (எ.கா., விவசாய கடன்கள், பயிர்களுக்கான சேமிப்பு) பயன்படுத்தவும். அடிப்படை கருத்துகளை படி-படியாக விளக்கவும், பயனருக்கு நிதி பற்றி எதுவும் தெரியாது என்று கருதவும். நிதி அல்லது கடன் தொடர்பற்ற கேள்விகளுக்கு பதிலளிக்க வேண்டாம்; பணிவுடன் நிதி தலைப்புகளுக்கு மறு வழிநடத்தி, கற்க புரிதல் உதவுங்கள்.",
-        "ATM assistance": "நீங்கள் இந்திய கிராமவாசிகளுக்காக உள்ள நட்பு ஏடிஎம் பயன்பாட்டு உதவியாளர், அவர்களுக்கு வங்கி பற்றிய முந்தைய அறிவு இல்லை. ஏடிஎம் பயன்பாடு (எ.கா., பணம் எடுப்பது, இருப்பு சரிபார்ப்பது, பின் பாதுகாப்பு) பற்றி தமிழில் எளிமையான, படி-படியான மற்றும் பொறுமையான பதில்களை வழங்கவும். கிராமப்புற வாழ்க்கைக்கு தொடர்புடைய எடுத்துக்காட்டுகளைப் பயன்படுத்தவும் (எ.கா., விவசாயத் தேவைகளுக்கு பணம் எடுப்பது). ஒவ்வொரு படியையும் தெளிவாக விளக்கவும், பயனர் ஏடிஎம்மைப் பயன்படுத்தவில்லை என்று கருதவும். ஏடிஎம் பயன்பாட்டுக்கு தொடர்பில்லாத கேள்விகளுக்கு பதிலளிக்க வேண்டாம்; பணிவுடன் ஏடிஎம் தொடர்பான தலைப்புகளுக்கு மறு வழிநடத்தி, கற்க ஊக்குவிக்கவும்."
+        "ATM assistance": "நீங்கள் இந்திய கிராமவாசிகளுக்காக உள்ள நட்பு ஏடிஎம் பயன்பாட்டு உதவியாளர், அவர்களுக்கு வங்கி பற்றிய முந்தைய அறிவு இல்லை. ஏடிஎம் பயன்பாடு (எ.கா., பணம் எடுப்பது, இருப்பு சரிபார்ப்பது, பின் பாதுகாப்பு) பற்றி தமிழில் எளிமையான, படி-படியான மற்றும் பொறுமையான பதில்களை வழங்கவும். கிராமப்புற வாழ்க்கைக்கு தொடர்புடைய எடுத்துக்காட்டுகளைப் பயன்படுத்தவும் (எ.கா., விவசாயத் தேவைகளுக்கு பணம் எடுப்பது). ஒவ்வொரு படியையும் தெளிவாக விளக்கவும், பயனர் ஏடிஎம்மைப் பயன்படுத்தவில்லை என்று கருதவும். ஏடிஎம் பயன்பாட்டுக்கு தொடர்பில்லாத கேள்விகளுக்கு பதிலளிக்க வேண்டாம்; பணிவுடன் ஏடிஎம் தொடர்பான தலைப்புகளுக்கு மறு வழிநடத்தி, கற்க ஊக்குவிக்கவும்.",
+        "locker assistance": "நீங்கள் இந்திய கிராமவாசிகளுக்காக உள்ள நட்பு லாக்கர் வசதி உதவியாளர், அவர்களுக்கு வங்கி பற்றிய முந்தைய அறிவு இல்லை. வங்கி லாக்கர் வசதிகள் (எ.கா., லாக்கர் வாடகைக்கு எடுப்பது, அதைப் பயன்படுத்துவது, பாதுகாப்பு குறிப்புகள்) பற்றி தமிழில் எளிமையான, படி-படியான மற்றும் பொறுமையான பதில்களை வழங்கவும். கிராமப்புற வாழ்க்கைக்கு தொடர்புடைய எடுத்துக்காட்டுகளைப் பயன்படுத்தவும் (எ.கா., பயிர் வருவாய் அல்லது குடும்ப நகைகளை சேமித்தல்). ஒவ்வொரு படியையும் தெளிவாக விளக்கவும், பயனர் லாக்கரைப் பயன்படுத்தவில்லை என்று கருதவும். லாக்கர் வசதிகளுக்கு தொடர்பில்லாத கேள்விகளுக்கு பதிலளிக்க வேண்டாம்; பணிவுடன் லாக்கர் தொடர்பான தலைப்புகளுக்கு மறு வழிநடத்தி, கற்க ஊக்குவிக்கவும்."
     },
     "te-IN": {
-        "general": "మీరు భారతీయ గ్రామస్తుల కోసం స్నేహపూర్వకమైన ఆర్థిక సలహాదారుడు, వీరికి ఆర్థిక జ్ఞానం లేదు. ఆర్థిక ప్రణాళిక, రుణాలు, పెట్టుబడులు మరియు బ్యాంకింగ్‌కు సంబంధించిన సాధారణ, వివరణాత్మక మరియు ధైర్యంగా ఉన్న జవాబులను తెలుగులో ఇవ్వండి, గ్రామీణ జీవన విధానానికి సంబంధించిన ఉదాహరణలను (ఉదా., రైతు రుణాలు, పంటల కోసం ఆదా) ఉపయోగించండి. మౌలిక భావనలను దశ-దశల వారీగా వివరించండి, వినియోగదారుడు ఆర్థిక విషయాల గురించి ఏమీ తెలియదని భావించండి. ఆర్థిలేదా రుణాలకు సంబంధించని ప్రశ్నలకు సమాధానం ఇవ్వకూడదు; సౌజన్యంగా ఆర్థిక విషయాలకు మళ్లించి, నేర్చుకోవడానికి ప్రోత్సాహించండి.",
-        "ATM assistance": "మీరు భారతీయ గ్రామస్తుల కోసం స్నేహపూర్వకమైన ఏటీఎం వినియోగ సహాయకుడు, వీరికి బ్యాంకింగ్ గురించి ఎటువంటి ముందస్తు జ్ఞానం లేదు. ఏటీఎం వినియోగం (ఉదా., నగదు ఉపసంహరణ, బ్యాలెన్స్ చెక్, పిన్ భద్రత) గురించి తెలుగులో సాధారణ, దశ-దశలవారీగా మరియు ఓపికగా జవాబులు ఇవ్వండి. గ్రామీణ జీవనానికి సంబంధించిన ఉదాహరణలను ఉపయోగించండి (ఉదా., వ్యవసాయ అవసరాల కోసం డబ్బు ఉపసంహరణ). ప్రతి దశను స్పష్టంగా వివరించండి, వినియోగదారుడు ఏటీఎం ఉపయోగించలేదని భావించండి. ఏటీఎం వినియోగానికి సంబంధించని ప్రశ్నలకు సమాధానం ఇవ్వకండి; సౌజన్యంగా ఏటీఎం సంబంధిత అంశాలకు మళ్లించి, నేర్చుకోవడానికి ప్రోత్సాహించండి."
+        "general": "మీరు భారతీయ గ్రామస్తుల కోసం స్నేహపూర్వకమైన ఆర్థిక సలహాదారుడు, వీరికి ఆర్థిక జ్ఞానం లేదు. ఆర్థిక ప్రణాళిక, రుణాలు, పెట్టుబడులు మరియు బ్యాంకింగ్‌కు సంబంధించిన సాధారణ, వివరణాత్మక మరియు ధైర్యంగా ఉన్న జవాబులను తెలుగులో ఇవ్వండి, గ్రామీణ జీవన విధానానికి సంబంధించిన ఉదాహరణలను (ఉదా., రైతు రుణాలు, పంటల కోసం ఆదా) ఉపయోగించండి. మౌలిక భావనలను దశ-దశల వారీగా వివరించండి, వినియోగదారుడు ఆర్థిక విషయాల గురించి ఏమీ తెలియదని భావించండి. ఆర్థిక లేదా రుణాలకు సంబంధించని ప్రశ్నలకు సమాధానం ఇవ్వకూడదు; సౌజన్యంగా ఆర్థిక విషయాలకు మళ్లించి, నేర్చుకోవడానికి ప్రోత్సాహించండి.",
+        "ATM assistance": "మీరు భారతీయ గ్రామస్తుల కోసం స్నేహపూర్వకమైన ఏటీఎం వినియోగ సహాయకుడు, వీరికి బ్యాంకింగ్ గురించి ఎటువంటి ముందస్తు జ్ఞానం లేదు. ఏటీఎం వినియోగం (ఉదా., నగదు ఉపసంహరణ, బ్యాలెన్స్ చెక్, పిన్ భద్రత) గురించి తెలుగులో సాధారణ, దశ-దశలవారీగా మరియు ఓపికగా జవాబులు ఇవ్వండి. గ్రామీణ జీవనానికి సంబంధించిన ఉదాహరణలను ఉపయోగించండి (ఉదా., వ్యవసాయ అవసరాల కోసం డబ్బు ఉపసంహరణ). ప్రతి దశను స్పష్టంగా వివరించండి, వినియోగదారుడు ఏటీఎం ఉపయోగించలేదని భావించండి. ఏటీఎం వినియోగానికి సంబంధించని ప్రశ్నలకు సమాధానం ఇవ్వకండి; సౌజన్యంగా ఏటీఎం సంబంధిత అంశాలకు మళ్లించి, నేర్చుకోవడానికి ప్రోత్సాహించండి.",
+        "locker assistance": "మీరు భారతీయ గ్రామస్తుల కోసం స్నేహపూర్వక లాకర్ సౌకర్య సహాయకుడు, వీరికి బ్యాంకింగ్ గురించి ఎటువంటి ముందస్తు జ్ఞానం లేదు. బ్యాంక్ లాకర్ సౌకర్యాల గురించి (ఉదా., లాకర్ అద్దెకు తీసుకోవడం, దానిని ఉపయోగించడం, భద్రతా చిట్కాలు) తెలుగులో సాధారణ, దశ-దశలవారీగా మరియు ఓపికగా జవాబులు ఇవ్వండి. గ్రామీణ జీవనానికి సంబంధించిన ఉదాహరణలను ఉపయోగించండి (ఉదా., పంట ఆదాయం లేదా కుటుంబ ఆభరణాలను నిల్వ చేయడం). ప్రతి దశను స్పష్టంగా వివరించండి, వినియోగదారుడు లాకర్ ఉపయోగించలేదని భావించండి. లాకర్ సౌకర్యాలకు సంబంధించని ప్రశ్నలకు సమాధానం ఇవ్వకండి; సౌజన్యంగా లాకర్ సంబంధిత అంశాలకు మళ్లించి, నేర్చుకోవడానికి ప్రోత్సాహించండి."
     }
 }
 
@@ -127,7 +150,7 @@ def check_eligibility():
         prompt_template = PromptTemplate(
             input_variables=["age", "monthlyIncome", "existingLoans", "existingLoanAmount", 
                             "defaultHistory", "loanAmount", "loanPurpose", "loanTenure"],
-            template="""
+            template=""" 
             Evaluate the eligibility of an applicant for a microloan based on the following information:
             - Age: {age} years
             - Monthly Income: ₹{monthlyIncome}
@@ -256,6 +279,118 @@ def find_banks():
     except Exception as e:
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
+@app.route('/find_lockers', methods=['POST'])
+def find_lockers():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+
+        required_fields = ['location', 'district', 'state']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({"error": f"Missing or empty field: {field}"}), 400
+
+        location = data['location'].strip().title()
+        district = data['district'].strip().title()
+        state = data['state'].strip().title()
+
+        prompt_template = PromptTemplate(
+            input_variables=["location", "district", "state"],
+            template=""" 
+            You are a banking assistant for India. Based on the provided location details, generate a list of banks that offer locker facilities in the specified area. Focus on banks that are likely to have locker services (e.g., major public and private banks like State Bank of India, HDFC Bank, or Canara Bank) and are relevant to the given location.
+
+            Location Details:
+            - Village/Town: {location}
+            - District: {district}
+            - State: {state}
+
+            Instructions:
+            - Generate a list of 3-5 banks that likely offer locker facilities in or near the specified location.
+            - Each bank must include:
+              - name: The bank's name (e.g., State Bank of India).
+              - address: A plausible address for the bank branch in the specified area (e.g., Main Road, {location}, {district}, {state}).
+              - lat: A plausible latitude coordinate for the branch (e.g., based on typical coordinates for the district or state).
+              - lng: A plausible longitude coordinate for the branch.
+            - Return a JSON object with:
+              - banks: An array of bank objects.
+              - center: An object with 'lat' and 'lng' representing the approximate center of the search area.
+            - If specific bank branches are not known, provide plausible examples of major banks likely to have branches in the area (e.g., SBI, ICICI, Canara Bank) with realistic addresses and coordinates.
+            - Do not include any additional text, markdown, or explanations—only the JSON object.
+            - Ensure the JSON is valid and properly formatted.
+
+            Example Output:
+            {{
+                "banks": [
+                    {{
+                        "name": "State Bank of India",
+                        "address": "Main Road, Shivajinagar, Bengaluru Urban, Karnataka",
+                        "lat": 12.9716,
+                        "lng": 77.5946
+                    }},
+                    {{
+                        "name": "HDFC Bank",
+                        "address": "MG Road, Bengaluru Urban, Karnataka",
+                        "lat": 12.9750,
+                        "lng": 77.6000
+                    }}
+                ],
+                "center": {{
+                    "lat": 12.9716,
+                    "lng": 77.5946
+                }}
+            }}
+            """
+        )
+
+        prompt = prompt_template.format(
+            location=location,
+            district=district,
+            state=state
+        )
+
+        try:
+            logger.debug(f"Sending prompt to Gemini for lockers: {prompt[:200]}...")
+            response = llm.invoke(prompt)
+            logger.debug(f"Raw Gemini response: {response.content}")
+
+            response_content = response.content.strip()
+            response_content = re.sub(r'^```json\s*|\s*```$', '', response_content).strip()
+            logger.debug(f"Cleaned Gemini response: {response_content}")
+
+            result = json.loads(response_content)
+            if not isinstance(result, dict) or 'banks' not in result or 'center' not in result:
+                logger.error("Invalid response format from Gemini")
+                return jsonify({
+                    "banks": [],
+                    "center": {"lat": 12.9716, "lng": 77.5946}
+                }), 200
+
+            required_fields = ['name', 'address', 'lat', 'lng']
+            valid_banks = []
+            for bank in result['banks']:
+                if isinstance(bank, dict) and all(field in bank for field in required_fields):
+                    valid_banks.append(bank)
+                else:
+                    logger.warning(f"Invalid bank object: {bank}")
+            result['banks'] = valid_banks
+
+        except (json.JSONDecodeError, ValueError) as e:
+            logger.error(f"Error parsing Gemini response: {str(e)}")
+            return jsonify({
+                "banks": [],
+                "center": {"lat": 12.9716, "lng": 77.5946}
+            }), 200
+        except Exception as e:
+            logger.error(f"Gemini query error: {str(e)}")
+            return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+        return jsonify(result), 200
+
+    except Exception as e:
+        logger.error(f"Server error: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 @app.route('/find_schemes', methods=['POST'])
 def find_schemes():
     try:
@@ -274,7 +409,7 @@ def find_schemes():
 
         prompt_template = PromptTemplate(
             input_variables=["location", "district", "state"],
-            template="""
+            template=""" 
             You are a government schemes assistant for India. Based on the provided location details, generate a list of government schemes available in the specified area. Include both national schemes (applicable to all states) and state- or district-specific schemes relevant to the given location.
 
             Location Details:
@@ -406,7 +541,7 @@ def analyze_document():
         # Define prompt template
         prompt_template = PromptTemplate(
             input_variables=["content", "document_type", "language"],
-            template="""
+            template=""" 
             You are a financial document analysis assistant for India. Analyze the provided document content and provide guidance for filling it out correctly. The document type is '{document_type}' and the output must be in '{language}'.
 
             Document Content:
@@ -513,7 +648,7 @@ def financial_assistant_post():
         # Define prompt template for Gemini
         prompt_template = PromptTemplate(
             input_variables=["query", "language_name"],
-            template="""
+            template=""" 
             You are a financial assistant for users in India. Provide a clear and concise answer to the following finance or loan-related question. The answer must be in {language_name} and tailored to the Indian context (e.g., referencing Indian banks, government schemes, or financial regulations). Limit the response to 3-5 sentences for brevity.
 
             Question: {query}
@@ -558,7 +693,7 @@ def financial_assistant_post():
         logger.error(f"Server error: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
-# New Chatbot Routes
+# Chatbot Routes
 @app.route('/chatbot')
 def chatbot():
     try:
@@ -587,7 +722,7 @@ def chat():
             language = 'en-US'
 
         # Validate context
-        valid_contexts = ['general', 'ATM assistance']
+        valid_contexts = ['general', 'ATM assistance', 'locker assistance']
         if context not in valid_contexts:
             logger.warning(f"Invalid context '{context}', defaulting to 'general'")
             context = 'general'
@@ -598,7 +733,7 @@ def chat():
         # Define prompt template
         prompt_template = PromptTemplate(
             input_variables=["system_instruction", "user_input"],
-            template="""
+            template=""" 
             {system_instruction}
 
             User Input: {user_input}
@@ -606,9 +741,9 @@ def chat():
             Instructions:
             - Respond in the language specified by the system instruction.
             - Provide a detailed and helpful response tailored to the user's query.
-            - Keep responses concise, limited to 3-5 sentences for general queries, or step-by-step instructions for ATM assistance.
+            - Keep responses concise, limited to 3-5 sentences for general queries, or step-by-step instructions for ATM or locker assistance.
             - Do not include markdown, code fences, or additional text—only the plain text response.
-            - Avoid using special symbols like * or - for lists; use numbered steps (e.g., 1. Step one) for ATM instructions.
+            - Avoid using special symbols like * or - for lists; use numbered steps (e.g., 1. Step one) for ATM or locker instructions.
             """
         )
 
@@ -758,7 +893,7 @@ def find_insurance():
     except Exception as e:
         logger.error(f"Server error: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
-    
+
 @app.route('/about')
 def about():
     lang = request.args.get('lang', 'en')
@@ -768,6 +903,70 @@ def about():
 def atm_assistance():
     lang = request.args.get('lang', 'en')
     return render_template('atm_assistance.html', lang=lang)
+
+@app.route('/locker')
+def locker():
+    lang = request.args.get('lang', 'en')
+    return render_template('locker.html', lang=lang)
+
+# Sign Up and Login Routes
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        if not username or not password:
+            flash('Username and password are required.', 'error')
+            return redirect(url_for('signup'))
+
+        try:
+            conn = sqlite3.connect('users.db')
+            c = conn.cursor()
+            c.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, password))
+            conn.commit()
+            conn.close()
+            flash('Sign up successful! Please log in.', 'success')
+            return redirect(url_for('login'))
+        except sqlite3.IntegrityError:
+            flash('Username already exists.', 'error')
+            return redirect(url_for('signup'))
+        except Exception as e:
+            logger.error(f"Error during signup: {str(e)}")
+            flash('An error occurred. Please try again.', 'error')
+            return redirect(url_for('signup'))
+
+    return render_template('signup.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        if not username or not password:
+            flash('Username and password are required.', 'error')
+            return redirect(url_for('login'))
+
+        try:
+            conn = sqlite3.connect('users.db')
+            c = conn.cursor()
+            c.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password))
+            user = c.fetchone()
+            conn.close()
+
+            if user:
+                flash('Login successful!', 'success')
+                return redirect(url_for('index'))
+            else:
+                flash('Invalid username or password.', 'error')
+                return redirect(url_for('login'))
+        except Exception as e:
+            logger.error(f"Error during login: {str(e)}")
+            flash('An error occurred. Please try again.', 'error')
+            return redirect(url_for('login'))
+
+    return render_template('login.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

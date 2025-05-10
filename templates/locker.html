@@ -1,0 +1,347 @@
+{% extends "base.html" %}
+
+{% block title %}
+<span data-translate="locker_finder_title">Vittam.ai - Find Locker Facilities</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(rgba(30, 95, 116, 0.8), rgba(30, 95, 116, 0.9)), url('https://source.unsplash.com/random/1200x800/?bank,rural,india');
+        background-size: cover;
+        background-position: center;
+        color: white;
+        padding: 4rem 0;
+        margin-bottom: 3rem;
+    }
+    
+    .search-form {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .facility-card-container {
+        padding: 0.75rem;
+    }
+    
+    .facility-card {
+        border: none;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        margin-bottom: 2rem;
+        height: 100%;
+    }
+    
+    .facility-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .facility-card .card-body {
+        display: flex;
+        flex-direction: column;
+        min-height: 250px;
+        padding: 1.5rem;
+    }
+    
+    .facility-card .btn {
+        margin-top: auto;
+        align-self: flex-start;
+    }
+    
+    .facility-icon {
+        font-size: 2rem;
+        color: var(--primary-color);
+    }
+    
+    .results-container {
+        margin-top: 2rem;
+    }
+    
+    .no-results, .error-message {
+        text-align: center;
+        padding: 3rem;
+    }
+    
+    .error-message {
+        color: #d9534f;
+    }
+    
+    .loading-container {
+        display: none;
+        text-align: center;
+        padding: 2rem;
+    }
+    
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+        color: var(--primary-color);
+    }
+    
+    .info-box {
+        background-color: var(--light-color);
+        border-left: 4px solid var(--accent-color);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border-radius: 0.25rem;
+    }
+    
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 2rem 0;
+        }
+        
+        .search-form {
+            padding: 1rem;
+        }
+        
+        .facility-card .card-body {
+            min-height: 200px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold" data-translate="locker_finder_title">Locker Facility Finder</h1>
+        <p class="lead" data-translate="locker_finder_subtitle">Find secure bank locker facilities near you to safely store your valuables</p>
+    </div>
+</section>
+
+<!-- Main Content -->
+<div class="container mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Info Box -->
+            <div class="info-box">
+                <h5 class="mb-2" data-translate="why_use_locker_finder">Why use our Locker Facility Finder?</h5>
+                <p class="mb-0" data-translate="locker_finder_info">Our Locker Facility Finder helps you locate nearby banks offering secure locker services to protect your money, jewelry, or important documents. This is ideal for rural communities to safely store earnings from crops or family valuables. Enter your village/town, district, and state below to find available facilities.</p>
+            </div>
+            
+            <!-- Search Form -->
+            <div class="search-form mb-4">
+                <h3 class="text-center mb-4" data-translate="enter_location">Enter Your Location</h3>
+                <form id="lockerSearchForm">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="location" class="form-label" data-translate="village_town">Village/Town</label>
+                            <input type="text" class="form-control" id="location" placeholder="e.g., Shivamogga" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="district" class="form-label" data-translate="district">District</label>
+                            <input type="text" class="form-control" id="district" placeholder="e.g., Shivamogga" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="state" class="form-label" data-translate="state">State</label>
+                            <input type="text" class="form-control" id="state" placeholder="e.g., Karnataka" required>
+                        </div>
+                        <div class="col-12 text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg px-5" data-translate="find_lockers">Find Lockers</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Loading Indicator -->
+            <div id="loadingContainer" class="loading-container">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3" data-translate="searching_lockers">Searching for locker facilities in your area...</p>
+            </div>
+            
+            <!-- Results Container -->
+            <div id="resultsContainer" class="results-container" style="display: none;">
+                <h3 class="mb-4 text-center" data-translate="lockers_near_you">Locker Facilities Near You</h3>
+                <div id="lockersList" class="row g-4"></div>
+            </div>
+            
+            <!-- No Results Container -->
+            <div id="noResultsContainer" class="no-results" style="display: none;">
+                <i class="fas fa-search fa-3x mb-3 text-muted"></i>
+                <h4 data-translate="no_lockers_found">No locker facilities found for this location</h4>
+                <p data-translate="try_different_location">Please try a different location or check your spelling.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Translation additions for locker finder page
+    translations.en = {
+        ...translations.en,
+        locker_finder_title: "Locker Facility Finder",
+        locker_finder_subtitle: "Find secure bank locker facilities near you to safely store your valuables",
+        why_use_locker_finder: "Why use our Locker Facility Finder?",
+        locker_finder_info: "Our Locker Facility Finder helps you locate nearby banks offering secure locker services to protect your money, jewelry, or important documents. This is ideal for rural communities to safely store earnings from crops or family valuables. Enter your village/town, district, and state below to find available facilities.",
+        enter_location: "Enter Your Location",
+        village_town: "Village/Town",
+        district: "District",
+        state: "State",
+        find_lockers: "Find Lockers",
+        searching_lockers: "Searching for locker facilities in your area...",
+        lockers_near_you: "Locker Facilities Near You",
+        no_lockers_found: "No locker facilities found for this location",
+        try_different_location: "Please try a different location or check your spelling.",
+        learn_more: "Learn More",
+        facilities_found: "locker facilities found for your location",
+        error_invalid_input: "Please provide valid location details.",
+        error_api: "Error fetching locker facility data. Please try again later."
+    };
+    
+    translations.hi = {
+        ...translations.hi,
+        locker_finder_title: "लॉकर सुविधा खोजक",
+        locker_finder_subtitle: "अपने पास सुरक्षित बैंक लॉकर सुविधाएँ खोजें ताकि अपने कीमती सामान को सुरक्षित रख सकें",
+        why_use_locker_finder: "हमारा लॉकर सुविधा खोजक क्यों उपयोग करें?",
+        locker_finder_info: "हमारा लॉकर सुविधा खोजक आपको पास की बैंकों को खोजने में मदद करता है जो आपके पैसे, जेवर या महत्वपूर्ण दस्तावेज़ों को सुरक्षित रखने के लिए सुरक्षित लॉकर सेवाएँ प्रदान करती हैं। यह ग्रामीण समुदायों के लिए फसल की कमाई या पारिवारिक कीमती सामान को सुरक्षित रखने के लिए आदर्श है। नीचे अपने गांव/शहर, जिला और राज्य दर्ज करें।",
+        enter_location: "अपना स्थान दर्ज करें",
+        village_town: "गांव/शहर",
+        district: "जिला",
+        state: "राज्य",
+        find_lockers: "लॉकर खोजें",
+        searching_lockers: "आपके क्षेत्र में लॉकर सुविधाओं की खोज कर रहे हैं...",
+        lockers_near_you: "आपके पास लॉकर सुविधाएँ",
+        no_lockers_found: "इस स्थान के लिए कोई लॉकर सुविधाएँ नहीं मिलीं",
+        try_different_location: "कृपया अलग स्थान आज़माएं या अपनी वर्तनी जांचें।",
+        learn_more: "अधिक जानें",
+        facilities_found: "लॉकर सुविधाएँ आपके स्थान के लिए मिलीं",
+        error_invalid_input: "कृपया मान्य स्थान विवरण प्रदान करें।",
+        error_api: "लॉकर सुविधा डेटा प्राप्त करने में त्रुटि। कृपया बाद में पुनः प्रयास करें।"
+    };
+    
+    translations.kn = {
+        ...translations.kn,
+        locker_finder_title: "ಲಾಕರ್ ಸೌಲಭ್ಯ ಹುಡುಕಾಟ",
+        locker_finder_subtitle: "ನಿಮ್ಮ ಮೌಲ್ಯಯುತ ವಸ್ತುಗಳನ್ನು ಸುರಕ್ಷಿತವಾಗಿ ಇರಿಸಲು ನಿಮ್ಮ ಹತ್ತಿರದ ಸುರಕ್ಷಿತ ಬ್ಯಾಂಕ್ ಲಾಕರ್ ಸೌಲಭ್ಯಗಳನ್ನು ಕಂಡುಕೊಳ್ಳಿ",
+        why_use_locker_finder: "ನಮ್ಮ ಲಾಕರ್ ಸೌಲಭ್ಯ ಹುಡುಕಾಟವನ್ನು ಏಕೆ ಬಳಸಬೇಕು?",
+        locker_finder_info: "ನಮ್ಮ ಲಾಕರ್ ಸೌಲಭ್ಯ ಹುಡುಕಾಟವು ನಿಮ್ಮ ಹಣ, ಆಭರಣಗಳು ಅಥವಾ ಮುಖ್ಯ ದಾಖಲೆಗಳನ್ನು ರಕ್ಷಿಸಲು ಸುರಕ್ಷಿತ ಲಾಕರ್ ಸೇವೆಗಳನ್ನು ಒದಗಿಸುವ ಹತ್ತಿರದ ಬ್ಯಾಂಕ್‌ಗಳನ್ನು ಕಂಡುಹಿಡಿಯಲು ಸಹಾಯ ಮಾಡುತ್ತದೆ। ಇದು ಗ್ರಾಮೀಣ ಸಮುದಾಯಗಳಿಗೆ ಬೆಳೆ ಆದಾಯ ಅಥವಾ ಕುಟುಂಬದ ಮೌಲ್ಯಯುತ ವಸ್ತುಗಳನ್ನು ಸುರಕ್ಷಿತವಾಗಿ ಇರಿಸಲು ಆದರ್ಶವಾಗಿದೆ। ಕೆಳಗೆ ನಿಮ್ಮ ಗ್ರಾಮ/ಪಟ್ಟಣ, ಜಿಲ್ಲೆ ಮತ್ತು ರಾಜ್ಯವನ್ನು ನಮೂದಿಸಿ.",
+        enter_location: "ನಿಮ್ಮ ಸ್ಥಳವನ್ನು ನಮೂದಿಸಿ",
+        village_town: "ಗ್ರಾಮ/ಪಟ್ಟಣ",
+        district: "ಜಿಲ್ಲೆ",
+        state: "ರಾಜ್ಯ",
+        find_lockers: "ಲಾಕರ್‌ಗಳನ್ನು ಹುಡುಕಿ",
+        searching_lockers: "ನಿಮ್ಮ ಪ್ರದೇಶದಲ್ಲಿ ಲಾಕರ್ ಸೌಲಭ್ಯಗಳನ್ನು ಹುಡುಕುತ್ತಿದ್ದೇವೆ...",
+        lockers_near_you: "ನಿಮ್ಮ ಹತ್ತಿರ ಲಾಕರ್ ಸೌಲಭ್ಯಗಳು",
+        no_lockers_found: "ಈ ಸ್ಥಳಕ್ಕೆ ಯಾವುದೇ ಲಾಕರ್ ಸೌಲಭ್ಯಗಳು ಕಂಡುಬಂದಿಲ್ಲ",
+        try_different_location: "ದಯವಿಟ್ಟು ಬೇರೆ ಸ್ಥಳವನ್ನು ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ನಿಮ್ಮ ಕಾಗುಣಿತವನ್ನು ಪರಿಶೀಲಿಸಿ.",
+        learn_more: "ಇನ್ನಷ್ಟು ತಿಳಿಯಿರಿ",
+        facilities_found: "ಲಾಕರ್ ಸೌಲಭ್ಯಗಳು ನಿಮ್ಮ ಸ್ಥಳಕ್ಕೆ ಕಂಡುಬಂದಿವೆ",
+        error_invalid_input: "ದಯವಿಟ್ಟು ಮಾನ್ಯ ಸ್ಥಳದ ವಿವರಗಳನ್ನು ಒದಗಿಸಿ.",
+        error_api: "ಲಾಕರ್ ಸೌಲಭ್ಯ ಡೇಟಾವನ್ನು ಪಡೆಯುವಲ್ಲಿ ದೋಷ. ದಯವಿಟ್ಟು ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ."
+    };
+
+    // Handle locker search form submission
+    document.addEventListener('DOMContentLoaded', () => {
+        const lockerSearchForm = document.getElementById('lockerSearchForm');
+        const loadingContainer = document.getElementById('loadingContainer');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const noResultsContainer = document.getElementById('noResultsContainer');
+        const currentLanguage = getCurrentLanguage();
+        updateContent(currentLanguage);
+
+        lockerSearchForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Get and sanitize form values
+            const location = document.getElementById('location').value.trim();
+            const district = document.getElementById('district').value.trim();
+            const state = document.getElementById('state').value.trim();
+            
+            // Enhanced client-side validation
+            if (!location || !district || !state || 
+                location.length < 2 || district.length < 2 || state.length < 2) {
+                noResultsContainer.innerHTML = `<h4 class="error-message" data-translate="error_invalid_input">${translations[currentLanguage].error_invalid_input}</h4>`;
+                noResultsContainer.style.display = 'block';
+                resultsContainer.style.display = 'none';
+                loadingContainer.style.display = 'none';
+                return;
+            }
+            
+            // Show loading, hide results and no results
+            loadingContainer.style.display = 'block';
+            resultsContainer.style.display = 'none';
+            noResultsContainer.style.display = 'none';
+            
+            try {
+                // Make API request to find locker facilities
+                const response = await fetch('/find_lockers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ location, district, state })
+                });
+                
+                const data = await response.json();
+                
+                // Hide loading
+                loadingContainer.style.display = 'none';
+                
+                if (data.error) {
+                    // Show error message
+                    noResultsContainer.innerHTML = `<h4 class="error-message" data-translate="error_api">${translations[currentLanguage].error_api}</h4>`;
+                    noResultsContainer.style.display = 'block';
+                    console.error('Error:', data.error);
+                } else if (data.banks && data.banks.length > 0) {
+                    // Show results
+                    resultsContainer.style.display = 'block';
+                    
+                    // Display locker facilities
+                    const lockersListContainer = document.getElementById('lockersList');
+                    lockersListContainer.innerHTML = '';
+                    
+                    // Show the number of facilities found
+                    const facilitiesFoundCount = document.createElement('div');
+                    facilitiesFoundCount.className = 'col-12 mb-3';
+                    facilitiesFoundCount.innerHTML = `<p class="lead text-center"><strong>${data.banks.length}</strong> ${translations[currentLanguage].facilities_found}</p>`;
+                    lockersListContainer.appendChild(facilitiesFoundCount);
+                    
+                    // Display each facility
+                    data.banks.forEach((bank, index) => {
+                        const facilityCard = document.createElement('div');
+                        facilityCard.className = 'col-md-6 col-lg-4 facility-card-container';
+                        facilityCard.innerHTML = `
+                            <div class="card facility-card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="me-3">
+                                            <div class="facility-icon rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                <span class="fw-bold">${index + 1}</span>
+                                            </div>
+                                        </div>
+                                        <h5 class="card-title mb-0">${bank.name}</h5>
+                                    </div>
+                                    <p class="card-text mb-3">${bank.address}</p>
+                                    <p class="card-text mb-3"><strong data-translate="coordinates">Coordinates:</strong> ${bank.lat}, ${bank.lng}</p>
+                                    <a href="#" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-info-circle me-1"></i> ${translations[currentLanguage].learn_more}
+                                    </a>
+                                </div>
+                            </div>
+                        `;
+                        lockersListContainer.appendChild(facilityCard);
+                    });
+                } else {
+                    // Show no results
+                    noResultsContainer.style.display = 'block';
+                }
+            } catch (error) {
+                // Hide loading, show error message
+                loadingContainer.style.display = 'none';
+                noResultsContainer.innerHTML = `<h4 class="error-message" data-translate="error_api">${translations[currentLanguage].error_api}</h4>`;
+                noResultsContainer.style.display = 'block';
+                console.error('Error:', error);
+            }
+        });
+    });
+</script>
+{% endblock %}
