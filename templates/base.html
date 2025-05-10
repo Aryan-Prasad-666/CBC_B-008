@@ -150,17 +150,21 @@
                             <li><a class="dropdown-item" href="/schemes" data-translate="nav_schemes">Government Schemes</a></li>
                             <li><a class="dropdown-item" href="/document_analyzer" data-translate="nav_document_analyzer">Document Analyzer</a></li>
                             <li><a class="dropdown-item" href="/financial_assistant" data-translate="nav_financial_assistant">Financial Assistant</a></li>
-                            <li><a class="dropdown-item" href="/insurance" data-translate="nav_insurance">Insurance</a></li>
+                            <li><a href="/insurance" class="dropdown-item" data-translate="nav_insurance">Insurance</a></li>
                             <li><a class="dropdown-item" href="/atm_assistance" data-translate="nav_atm_assistance">ATM Assistance</a></li>
                             <li><a class="dropdown-item" href="/locker" data-translate="nav_locker">Locker Assistance</a></li>
                             <li><a class="dropdown-item" href="/banks" data-translate="nav_banks">Banks</a></li>
                         </ul>
                     </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="agricultureDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-translate="nav_agriculture">Agriculture</a>
+                        <ul class="dropdown-menu" aria-labelledby="agricultureDropdown">
+                            <li><a class="dropdown-item" href="/weather_advisory" data-translate="nav_weather_advisory">Weather Advisory</a></li>
+                        </ul>
+                    </li>
                     <li class="nav-item"><a class="nav-link" href="/expense_tracker" data-translate="nav_expense_tracker">Expense Tracker</a></li>
                     <li class="nav-item"><a class="nav-link" href="/chatbot" data-translate="nav_business_assistance">Business Assistance</a></li>
                     <li class="nav-item"><a class="nav-link" href="/about" data-translate="nav_about">About Us</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/signup" data-translate="nav_signup">Sign Up</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/login" data-translate="nav_login">Login</a></li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="languageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-globe me-1"></i><span data-translate="nav_language">Language</span>
@@ -206,6 +210,7 @@
                         <li><a href="/atm_assistance" data-translate="footer_atm_assistance">ATM Assistance</a></li>
                         <li><a href="/locker" data-translate="footer_locker">Locker Assistance</a></li>
                         <li><a href="/banks" data-translate="footer_banks">Banks</a></li>
+                        <li><a href="/weather_advisory" data-translate="footer_weather_advisory">Weather Advisory</a></li>
                         <li><a href="/expense_tracker" data-translate="footer_expense_tracker">Expense Tracker</a></li>
                         <li><a href="/chatbot" data-translate="footer_business_assistance">Business Assistance</a></li>
                     </ul>
@@ -214,8 +219,6 @@
                     <h5 class="footer-heading" data-translate="footer_company">Company</h5>
                     <ul class="footer-links">
                         <li><a href="/about" data-translate="footer_about">About Us</a></li>
-                        <li><a href="/signup" data-translate="footer_signup">Sign Up</a></li>
-                        <li><a href="/login" data-translate="footer_login">Login</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-4 col-md-6 footer-section">
@@ -263,11 +266,11 @@
                 nav_atm_assistance: "ATM Assistance",
                 nav_locker: "Locker Assistance",
                 nav_banks: "Banks",
+                nav_agriculture: "Agriculture",
+                nav_weather_advisory: "Weather Advisory",
                 nav_expense_tracker: "Expense Tracker",
                 nav_business_assistance: "Business Assistance",
                 nav_about: "About Us",
-                nav_signup: "Sign Up",
-                nav_login: "Login",
                 nav_language: "Language",
                 footer_vittam: "Vittam.ai",
                 footer_description: "Empowering rural communities with accessible financial and business tools for sustainable growth and prosperity.",
@@ -280,12 +283,11 @@
                 footer_atm_assistance: "ATM Assistance",
                 footer_locker: "Locker Assistance",
                 footer_banks: "Banks",
+                footer_weather_advisory: "Weather Advisory",
                 footer_expense_tracker: "Expense Tracker",
                 footer_business_assistance: "Business Assistance",
                 footer_company: "Company",
                 footer_about: "About Us",
-                footer_signup: "Sign Up",
-                footer_login: "Login",
                 footer_contact_us: "Contact Us",
                 footer_address: "123 Financial District, Bengaluru, Karnataka, India",
                 footer_phone: "+91 9876543210",
@@ -308,11 +310,11 @@
                 nav_atm_assistance: "एटीएम सहायता",
                 nav_locker: "लॉकर सहायता",
                 nav_banks: "बैंक",
+                nav_agriculture: "कृषि",
+                nav_weather_advisory: "मौसम सलाह",
                 nav_expense_tracker: "खर्च ट्रैकर",
                 nav_business_assistance: "व्यवसाय सहायता",
                 nav_about: "हमारे बारे में",
-                nav_signup: "साइन अप",
-                nav_login: "लॉगिन",
                 nav_language: "भाषा",
                 footer_vittam: "वित्तम.एआई",
                 footer_description: "ग्रामीण समुदायों को सतत विकास और समृद्धि के लिए सुलभ वित्तीय और व्यावसायिक उपकरणों के साथ सशक्त बनाना।",
@@ -325,12 +327,11 @@
                 footer_atm_assistance: "एटीएम सहायता",
                 footer_locker: "लॉकर सहायता",
                 footer_banks: "बैंक",
+                footer_weather_advisory: "मौसम सलाह",
                 footer_expense_tracker: "खर्च ट्रैकर",
                 footer_business_assistance: "व्यवसाय सहायता",
                 footer_company: "कंपनी",
                 footer_about: "हमारे बारे में",
-                footer_signup: "साइन अप",
-                footer_login: "लॉगिन",
                 footer_contact_us: "हमसे संपर्क करें",
                 footer_address: "123 वित्तीय जिला, बेंगलुरु, कर्नाटक, भारत",
                 footer_phone: "+91 9876543210",
@@ -353,11 +354,11 @@
                 nav_atm_assistance: "ಎಟಿಎಂ ಸಹಾಯ",
                 nav_locker: "ಲಾಕರ್ ಸಹಾಯ",
                 nav_banks: "ಬ್ಯಾಂಕುಗಳು",
+                nav_agriculture: "ಕೃಷಿ",
+                nav_weather_advisory: "ಹವಾಮಾನ ಸಲಹೆ",
                 nav_expense_tracker: "ವೆಚ್ಚ ಟ್ರ್ಯಾಕರ್",
                 nav_business_assistance: "ವ್ಯಾಪಾರ ಸಹಾಯ",
                 nav_about: "ನಮ್ಮ ಬಗ್ಗೆ",
-                nav_signup: "ಸೈನ್ ಅಪ್",
-                nav_login: "ಲಾಗಿನ್",
                 nav_language: "ಭಾಷೆ",
                 footer_vittam: "ವಿತ್ತಮ್.ಎಐ",
                 footer_description: "ಗ್ರಾಮೀಣ ಸಮುದಾಯಗಳನ್ನು ಸುಸ್ಥಿರ ಬೆಳವಣಿಗೆ ಮತ್ತು ಸಮೃದ್ಧಿಗಾಗಿ ಸುಲಭವಾದ ಆರ್ಥಿಕ ಮತ್ತು ವ್ಯಾಪಾರ ಸಾಧನಗಳೊಂದಿಗೆ ಸಬಲೀಕರಣಗೊಳಿಸುವುದು.",
@@ -370,12 +371,11 @@
                 footer_atm_assistance: "ಎಟಿಎಂ ಸಹಾಯ",
                 footer_locker: "ಲಾಕರ್ ಸಹಾಯ",
                 footer_banks: "ಬ್ಯಾಂಕುಗಳು",
+                footer_weather_advisory: "ಹವಾಮಾನ ಸಲಹೆ",
                 footer_expense_tracker: "ವೆಚ್ಚ ಟ್ರ್ಯಾಕರ್",
                 footer_business_assistance: "ವ್ಯಾಪಾರ ಸಹಾಯ",
                 footer_company: "ಕಂಪನಿ",
                 footer_about: "ನಮ್ಮ ಬಗ್ಗೆ",
-                footer_signup: "ಸೈನ್ ಅಪ್",
-                footer_login: "ಲಾಗಿನ್",
                 footer_contact_us: "ನಮ್ಮನ್ನು ಸಂಪರ್ಕಿಸಿ",
                 footer_address: "123 ಆರ್ಥಿಕ ಜಿಲ್ಲೆ, ಬೆಂಗಳೂರು, ಕರ್ನಾಟಕ, ಭಾರತ",
                 footer_phone: "+91 9876543210",

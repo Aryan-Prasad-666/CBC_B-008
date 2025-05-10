@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify, flash, redirect, url
 from werkzeug.exceptions import BadRequest, InternalServerError
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import PromptTemplate
+from datetime import datetime, timedelta  # Add this import if not already present
 from dotenv import load_dotenv
 import os
 import json
@@ -1235,6 +1236,181 @@ def login():
             return redirect(url_for('login'))
 
     return render_template('login.html')
+
+
+# Weather Advisory Route
+@app.route('/weather_advisory')
+def weather_advisory():
+    lang = request.args.get('lang', 'en')
+    return render_template('weather_advisory.html', lang=lang)
+
+@app.route('/weather_advisory_data', methods=['POST'])
+def weather_advisory_data():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+
+        required_fields = ['location', 'district', 'state']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({"error": f"Missing or empty field: {field}"}), 400
+
+        location = data['location'].strip().title()
+        district = data['district'].strip().title()
+        state = data['state'].strip().title()
+
+        # Generate dates for the forecast
+        today = datetime.now()
+        daily_dates = [(today + timedelta(days=i)).strftime('%Y-%m-%d') for i in range(1, 3)]  # Next 2 days
+        weekly_dates = [(today + timedelta(days=i)).strftime('%Y-%m-%d') for i in range(1, 8)]  # Next 7 days
+
+        prompt_template = PromptTemplate(
+            input_variables=["location", "district", "state", "daily_dates", "weekly_dates"],
+            template=""" 
+            You are a weather and agricultural advisory assistant for rural India. Based on the provided location details, generate weather forecasts and agricultural tips for farmers. The current date is {today}.
+
+            Location Details:
+            - Village/Town: {location}
+            - District: {district}
+            - State: {state}
+
+            Instructions:
+            - Provide a weather forecast for the specified location, including:
+              - Daily forecast for the next 2 days ({daily_dates}).
+              - Weekly forecast for the next 7 days ({weekly_dates}).
+              - Agricultural tips based on the weather conditions.
+              - Weather alerts for any extreme conditions (e.g., heavy rain, drought).
+            - Each daily forecast entry must include:
+              - date: The date in YYYY-MM-DD format.
+              - condition: Weather condition (e.g., Sunny, Rainy, Cloudy).
+              - temperature: Temperature in Celsius (e.g., 28).
+              - humidity: Humidity percentage (e.g., 70).
+              - icon: A Font Awesome icon name (e.g., sun, cloud-rain, cloud) for the condition.
+            - Each weekly forecast entry must include:
+              - date: The date in YYYY-MM-DD format.
+              - condition: Weather condition.
+              - min_temp: Minimum temperature in Celsius.
+              - max_temp: Maximum temperature in Celsius.
+              - icon: A Font Awesome icon name for the condition.
+            - Agricultural tips:
+              - Provide 3-5 practical tips for farmers based on the weather forecast (e.g., irrigation advice, crop protection).
+              - Return as a list of strings.
+            - Weather alerts:
+              - If there are extreme weather conditions (e.g., heavy rain, heatwave), provide a brief alert message.
+              - If no alerts, return a message indicating no extreme weather.
+            - Return a JSON object with:
+              - daily_forecast: Array of daily forecast objects.
+              - weekly_forecast: Array of weekly forecast objects.
+              - agricultural_tips: Array of tip strings.
+              - weather_alerts: A string with the alert message or a message indicating no alerts.
+            - Ensure the JSON is valid and properly formatted.
+            - Do not include any additional text, markdown, or explanations—only the JSON object.
+
+            Example Output:
+            {{
+                "daily_forecast": [
+                    {{
+                        "date": "2025-05-12",
+                        "condition": "Sunny",
+                        "temperature": 30,
+                        "humidity": 65,
+                        "icon": "sun"
+                    }},
+                    {{
+                        "date": "2025-05-13",
+                        "condition": "Rainy",
+                        "temperature": 26,
+                        "humidity": 80,
+                        "icon": "cloud-rain"
+                    }}
+                ],
+                "weekly_forecast": [
+                    {{
+                        "date": "2025-05-12",
+                        "condition": "Sunny",
+                        "min_temp": 22,
+                        "max_temp": 30,
+                        "icon": "sun"
+                    }},
+                    {{
+                        "date": "2025-05-13",
+                        "condition": "Rainy",
+                        "min_temp": 20,
+                        "max_temp": 26,
+                        "icon": "cloud-rain"
+                    }}
+                ],
+                "agricultural_tips": [
+                    "Ensure proper irrigation as the weather will be sunny.",
+                    "Prepare for rain by protecting crops with covers."
+                ],
+                "weather_alerts": "No extreme weather alerts at this time."
+            }}
+            """
+        )
+
+        prompt = prompt_template.format(
+            location=location,
+            district=district,
+            state=state,
+            daily_dates=", ".join(daily_dates),
+            weekly_dates=", ".join(weekly_dates),
+            today=today.strftime('%Y-%m-%d')
+        )
+
+        try:
+            logger.debug(f"Sending prompt to Gemini for weather: {prompt[:200]}...")
+            response = llm.invoke(prompt)
+            logger.debug(f"Raw Gemini response: {response.content}")
+
+            response_content = response.content.strip()
+            response_content = re.sub(r'^```json\s*|\s*```$', '', response_content).strip()
+            logger.debug(f"Cleaned Gemini response: {response_content}")
+
+            weather_data = json.loads(response_content)
+            if not isinstance(weather_data, dict) or 'daily_forecast' not in weather_data or 'weekly_forecast' not in weather_data:
+                logger.error("Invalid response format from Gemini")
+                return jsonify({"error": "Invalid weather data format"}), 500
+
+            # Validate daily forecast
+            required_daily_fields = ['date', 'condition', 'temperature', 'humidity', 'icon']
+            valid_daily = []
+            for day in weather_data['daily_forecast']:
+                if isinstance(day, dict) and all(field in day for field in required_daily_fields):
+                    valid_daily.append(day)
+                else:
+                    logger.warning(f"Invalid daily forecast object: {day}")
+            weather_data['daily_forecast'] = valid_daily
+
+            # Validate weekly forecast
+            required_weekly_fields = ['date', 'condition', 'min_temp', 'max_temp', 'icon']
+            valid_weekly = []
+            for day in weather_data['weekly_forecast']:
+                if isinstance(day, dict) and all(field in day for field in required_weekly_fields):
+                    valid_weekly.append(day)
+                else:
+                    logger.warning(f"Invalid weekly forecast object: {day}")
+            weather_data['weekly_forecast'] = valid_weekly
+
+            # Ensure agricultural tips and alerts are present
+            if 'agricultural_tips' not in weather_data or not isinstance(weather_data['agricultural_tips'], list):
+                weather_data['agricultural_tips'] = ["No agricultural tips available."]
+            if 'weather_alerts' not in weather_data or not isinstance(weather_data['weather_alerts'], str):
+                weather_data['weather_alerts'] = "No weather alerts available."
+
+        except (json.JSONDecodeError, ValueError) as e:
+            logger.error(f"Error parsing Gemini response: {str(e)}")
+            return jsonify({"error": "Failed to parse weather data"}), 500
+        except Exception as e:
+            logger.error(f"Gemini query error: {str(e)}")
+            return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+        return jsonify(weather_data), 200
+
+    except Exception as e:
+        logger.error(f"Server error: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
