@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify
+from werkzeug.exceptions import BadRequest, InternalServerError
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
@@ -30,8 +31,23 @@ if not GOOGLE_API_KEY:
     raise ValueError("GOOGLE_API_KEY environment variable not set")
 
 # Use Gemini 2.0 Flash
-llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", google_api_key=GEMINI_API_KEY)
+llm = ChatGoogleGenerativeAI(
+    model="gemini-2.0-flash",
+    google_api_key=GEMINI_API_KEY,
+    temperature=0.5,
+    max_output_tokens=1000
+)
 
+# Language instructions for chatbot
+language_instructions = {
+    "en-US": "You are a friendly financial advisor for Indian villagers with no prior financial knowledge. Provide simple, detailed, and patient responses in English related to financial planning, loans, investments, and banking, using examples relevant to rural life (e.g., farming loans, savings for crops). Explain basic concepts step-by-step, assuming the user knows nothing about finance. Do not answer queries unrelated to finance or loans; politely redirect to financial topics with encouragement to learn.",
+    "hi-IN": "आप एक मित्रवत वित्तीय सलाहकार हैं जो भारतीय ग्रामीणों के लिए हैं, जिन्हें वित्त का कोई पूर्व ज्ञान नहीं है। हिंदी में वित्तीय नियोजन, ऋण, निवेश और बैंकिंग से संबंधित सरल, विस्तृत और धैर्यपूर्ण उत्तर दें, ग्रामीण जीवन (जैसे खेती के ऋण, फसलों के लिए बचत) से संबंधित उदाहरणों का उपयोग करें। बुनियादी अवधारणाओं को चरण-दर-चरण समझाएं, यह मानते हुए कि उपयोगकर्ता को वित्त के बारे में कुछ भी नहीं पता है। वित्त या ऋण से असंबंधित प्रश्नों का उत्तर न दें; विनम्रता से वित्तीय विषयों की ओर पुनर्निर्देशित करें और सीखने के लिए प्रोत्साहित करें।",
+    "kn-IN": "ನೀವು ಭಾರತೀಯ ಗ್ರಾಮೀಣರಿಗಾಗಿ ಸ್ನೇಹಶೀಲ ಆರ್ಥಿಕ ಸಲಹೆಗಾರರಾಗಿದ್ದೀರಿ, ಅವರಿಗೆ ಆರ್ಥಿಕತೆಯ ಬಗ್ಗೆ ಯಾವುದೇ ಮುಂಚಿನ ಜ್ಞಾನ ಇಲ್ಲ. ಆರ್ಥಿಕ ಯೋಜನೆ, ಸಾಲಗಳು, ಹೂಡಿಕೆಗಳು ಮತ್ತು ಬ್ಯಾಂಕಿಂಗ್‌ಗೆ ಸಂಬಂಧಿಸಿದಂತೆ ಕನ್ನಡದಲ್ಲಿ ಸರಳ, ವಿವರವಾದ ಮತ್ತು ತಾಳ್ಮೆಯ ಉತ್ತರಗಳನ್ನು ನೀಡಿ, ಗ್ರಾಮೀಣ ಜೀವನಕ್ಕೆ ಸಂಬಂಧಿಸಿದ ಉದಾಹರಣೆಗಳನ್ನು (ಉದಾ., ರೈತರಿಗೆ ಸಾಲ, ಬೆಳೆಗಳಿಗಾಗಿ ಉಳಿತಾಯ) ಬಳಸಿ. ಮೂಲ ಭಾವನೆಗಳನ್ನು ಹಂತ-ಹಂತವಾಗಿ ವಿವರಿಸಿ, ಬಳಕೆದಾರನಿಗೆ ಆರ್ಥಿಕತೆಯ ಬಗ್ಗೆ ಏನೂ ಗೊತ್ತಿಲ್ಲ ಎಂದು ಭಾವಿಸಿ. ಹಣಕಾಸು ಅಥವಾ ಸಾಲಕ್ಕೆ ಸಂಬಂಧಿಸದ ಪ್ರಶ್ನೆಗಳಿಗೆ ಉತ್ತರಿಸಬೇಡಿ; ಆರ್ಥಿಕ ವಿಷಯಗಳಿಗೆ ಸೌಜನ್ಯದಿಂದ ಮರುನಿರ್ದೇಶಿಸಿ ಮತ್ತು ಕಲಿಯಲು ಪ್ರೋತ್ಸಾಹಿಸಿ.",
+    "ta-IN": "நீங்கள் இந்திய கிராமவாசிகளுக்காக உள்ள நட்பு நிதி ஆலோசகர், அவர்களுக்கு நிதி பற்றிய முந்தைய அறிவு இல்லை. நிதி திட்டமிடல், கடன்கள், முதலீடுகள் மற்றும் வங்கி சேவைகள் தொடர்பாக தமிழில் எளிமையான, விரிவான மற்றும் பொறுமையான பதில்களை வழங்கவும், கிராமப்புற வாழ்க்கைக்கு தொடர்புடைய எடுத்துக்காட்டுகளை (எ.கா., விவசாய கடன்கள், பயிர்களுக்கான சேமிப்பு) பயன்படுத்தவும். அடிப்படை கருத்துகளை படி-படியாக விளக்கவும், பயனருக்கு நிதி பற்றி எதுவும் தெரியாது என்று கருதவும். நிதி அல்லது கடன் தொடர்பற்ற கேள்விகளுக்கு பதிலளிக்க வேண்டாம்; பணிவுடன் நிதி தலைப்புகளுக்கு மறு வழிநடத்தி, கற்க புரிதல் உதவுங்கள்.",
+    "te-IN": "మీరు భారతీయ గ్రామస్తుల కోసం స్నేహపూర్వకమైన ఆర్థిక సలహాదారుడు, వీరికి ఆర్థిక జ్ఞానం లేదు. ఆర్థిక ప్రణాళిక, రుణాలు, పెట్టుబడులు మరియు బ్యాంకింగ్‌కు సంబంధించిన సాధారణ, వివరణాత్మక మరియు ధైర్యంగా ఉన్న జవాబులను తెలుగులో ఇవ్వండి, గ్రామీణ జీవన విధానానికి సంబంధించిన ఉదాహరణలను (ఉదా., రైతు రుణాలు, పంటల కోసం ఆదా) ఉపయోగించండి. మౌలిక భావనలను దశ-దశల వారీగా వివరించండి, వినియోగదారుడు ఆర్థిక విషయాల గురించి ఏమీ తెలియదని భావించండి. ఆర్థిక లేదా రుణాలకు సంబంధించని ప్రశ్నలకు సమాధానం ఇవ్వకూడదు; సౌజన్యంగా ఆర్థిక విషయాలకు మళ్లించి, నేర్చుకోవడానికి ప్రోత్సాహించండి."
+}
+
+# Existing Routes
 @app.route('/')
 def index():
     lang = request.args.get('lang', 'en')
@@ -444,6 +460,277 @@ def analyze_document():
             return jsonify({"error": f"Analysis error: {str(e)}"}), 500
 
         return jsonify({"analysis": analysis}), 200
+
+    except Exception as e:
+        logger.error(f"Server error: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+@app.route('/financial_assistant')
+def financial_assistant():
+    lang = request.args.get('lang', 'en')
+    return render_template('financial_assistant.html', lang=lang)
+
+@app.route('/financial_assistant', methods=['POST'])
+def financial_assistant_post():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+
+        required_fields = ['query', 'language']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({"error": f"Missing or empty field: {field}"}), 400
+
+        query = data['query'].strip()
+        language = data['language'].strip().lower()
+
+        # Validate language
+        valid_languages = ['en', 'hi', 'kn']
+        if language not in valid_languages:
+            logger.warning(f"Invalid language '{language}', defaulting to 'en'")
+            language = 'en'
+
+        # Map language codes to names
+        language_names = {'en': 'English', 'hi': 'Hindi', 'kn': 'Kannada'}
+        language_name = language_names[language]
+
+        # Define prompt template for Gemini
+        prompt_template = PromptTemplate(
+            input_variables=["query", "language_name"],
+            template="""
+            You are a financial assistant for users in India. Provide a clear and concise answer to the following finance or loan-related question. The answer must be in {language_name} and tailored to the Indian context (e.g., referencing Indian banks, government schemes, or financial regulations). Limit the response to 3-5 sentences for brevity.
+
+            Question: {query}
+
+            Instructions:
+            - Answer in {language_name}, using simple and clear language.
+            - Focus on practical advice or information relevant to finance or loans in India.
+            - If the question is too vague or unrelated to finance/loans, return a polite message indicating the need for a more specific finance-related question.
+            - Do not include markdown, code fences, or additional text—only the plain text response.
+            - dont use any special symbols like *
+
+            Example (for English):
+            To apply for a microloan, visit a local bank like State Bank of India or a microfinance institution like Bandhan Bank. Ensure you meet eligibility criteria, such as a minimum monthly income of ₹5,000 and no recent loan defaults. Submit documents like Aadhaar, income proof, and address proof. Check government schemes like PMMY for subsidized loans.
+            """
+        )
+
+        # Create prompt
+        prompt = prompt_template.format(
+            query=query,
+            language_name=language_name
+        )
+
+        # Query Gemini
+        try:
+            logger.debug(f"Sending prompt to Gemini: {prompt[:200]}...")
+            response = llm.invoke(prompt)
+            logger.debug(f"Gemini response: {response.content}")
+
+            # Use the plain text response
+            answer = response.content.strip()
+            if not answer:
+                logger.warning("Empty response from Gemini")
+                answer = "No answer found."
+
+        except Exception as e:
+            logger.error(f"Gemini query error: {str(e)}")
+            answer = "Error processing query. Please try again later."
+
+        return jsonify({"response": answer}), 200
+
+    except Exception as e:
+        logger.error(f"Server error: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+# New Chatbot Routes
+@app.route('/chatbot')
+def chatbot():
+    try:
+        lang = request.args.get('lang', 'en')
+        return render_template('chatbot.html', lang=lang)
+    except Exception as e:
+        logger.error(f"Error rendering chatbot page: {e}")
+        return jsonify({"error": "Failed to load the chatbot page"}), 500
+
+@app.route('/chat', methods=['POST'])
+def chat():
+    try:
+        if not request.is_json:
+            raise BadRequest("Request must be JSON")
+        data = request.json
+        user_input = data.get('message')
+        language = data.get('language', 'en-US')
+        if not user_input or not isinstance(user_input, str) or not user_input.strip():
+            raise BadRequest("Invalid or empty message")
+
+        # Validate language
+        valid_languages = ['en-US', 'hi-IN', 'kn-IN', 'ta-IN', 'te-IN']
+        if language not in valid_languages:
+            logger.warning(f"Invalid language '{language}', defaulting to 'en-US'")
+            language = 'en-US'
+
+        # Get system instruction for the selected language
+        system_instruction = language_instructions.get(language, language_instructions['en-US'])
+
+        # Define prompt template
+        prompt_template = PromptTemplate(
+            input_variables=["system_instruction", "user_input"],
+            template="""
+            {system_instruction}
+
+            User Input: {user_input}
+
+            Instructions:
+            - Respond in the language specified by the system instruction.
+            - Provide a detailed and helpful response tailored to the user's query.
+            - Do not include markdown, code fences, or additional text—only the plain text response.
+            - dont use any special symbols like *
+            """
+        )
+
+        # Create prompt
+        prompt = prompt_template.format(
+            system_instruction=system_instruction,
+            user_input=user_input
+        )
+
+        # Query Gemini
+        try:
+            logger.debug(f"Sending prompt to Gemini: {prompt[:200]}...")
+            response = llm.invoke(prompt)
+            logger.debug(f"Gemini response: {response.content}")
+
+            bot_response = response.content.strip()
+            if not bot_response:
+                logger.warning("Empty response from Gemini")
+                bot_response = "No answer found."
+
+        except Exception as e:
+            logger.error(f"Gemini query error: {str(e)}")
+            bot_response = "Error processing query. Please try again later."
+
+        return jsonify({'response': bot_response}), 200
+
+    except BadRequest as e:
+        logger.warning(f"Bad request: {e}")
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        logger.error(f"Server error in chat route: {e}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+@app.route('/insurance')
+def insurance():
+    lang = request.args.get('lang', 'en')
+    return render_template('insurance.html', lang=lang)
+
+@app.route('/find_insurance', methods=['POST'])
+def find_insurance():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+
+        required_fields = ['location', 'district', 'state']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({"error": f"Missing or empty field: {field}"}), 400
+
+        location = data['location'].strip().title()
+        district = data['district'].strip().title()
+        state = data['state'].strip().title()
+
+        prompt_template = PromptTemplate(
+            input_variables=["location", "district", "state"],
+            template=""" 
+            You are an insurance schemes assistant for India. Based on the provided location details, generate a list of insurance schemes available in the specified area. Include both national insurance schemes (applicable to all states) and state- or district-specific insurance schemes relevant to the given location, focusing on options suitable for rural communities (e.g., crop insurance, health insurance, livestock insurance).
+
+            Location Details:
+            - Village/Town: {location}
+            - District: {district}
+            - State: {state}
+
+            Instructions:
+            - Generate at least 3-5 insurance schemes, including:
+              - National schemes (e.g., PMFBY, Ayushman Bharat) if applicable.
+              - State-specific insurance schemes for {state} (e.g., schemes by the {state} government or local insurers).
+              - District-specific insurance schemes for {district} if available.
+            - Each scheme must include:
+              - name: The scheme's name.
+              - description: A brief description (2-3 sentences).
+              - eligibility: Who can apply (e.g., farmers, rural households, small business owners).
+              - link: A realistic URL for more information (e.g., official government or insurance provider website).
+              - states: List of applicable states (include 'All' for national schemes, or specific states like '{state}').
+              - districts: List of applicable districts (include 'All' for state/national schemes, or specific districts like '{district}').
+              - launch_date: The scheme's launch date in YYYY-MM-DD format (use recent dates for new schemes, e.g., 2023 or 2024).
+            - Return a JSON array of insurance scheme objects, sorted by launch_date (newest first).
+            - If no specific schemes are known for the district, include national and state schemes and note any limitations.
+            - Do not include any additional text, markdown, or explanations—only the JSON array.
+            - Ensure the JSON is valid and properly formatted.
+
+            Example Output:
+            [
+                {{
+                    "name": "Pradhan Mantri Fasal Bima Yojana",
+                    "description": "Provides crop insurance to farmers against natural calamities and crop losses.",
+                    "eligibility": "Farmers growing notified crops in the scheme area.",
+                    "link": "https://pmfby.gov.in",
+                    "states": ["All"],
+                    "districts": ["All"],
+                    "launch_date": "2016-01-13"
+                }},
+                {{
+                    "name": "Karnataka Farmer Health Insurance",
+                    "description": "Offers health insurance coverage for farmers in Karnataka, including hospitalization and medical expenses.",
+                    "eligibility": "Registered farmers in Karnataka.",
+                    "link": "https://karnataka.gov.in",
+                    "states": ["Karnataka"],
+                    "districts": ["All"],
+                    "launch_date": "2023-06-01"
+                }}
+            ]
+            """
+        )
+
+        prompt = prompt_template.format(
+            location=location,
+            district=district,
+            state=state
+        )
+
+        try:
+            logger.debug(f"Sending prompt to Gemini for insurance: {prompt[:200]}...")
+            response = llm.invoke(prompt)
+            logger.debug(f"Raw Gemini response: {response.content}")
+
+            response_content = response.content.strip()
+            response_content = re.sub(r'^```json\s*|\s*```$', '', response_content).strip()
+            logger.debug(f"Cleaned Gemini response: {response_content}")
+
+            insurance = json.loads(response_content)
+            if not isinstance(insurance, list):
+                logger.error("Gemini response is not a list")
+                insurance = []
+
+            required_fields = ['name', 'description', 'eligibility', 'link', 'states', 'districts', 'launch_date']
+            valid_insurance = []
+            for scheme in insurance:
+                if isinstance(scheme, dict) and all(field in scheme for field in required_fields):
+                    valid_insurance.append(scheme)
+                else:
+                    logger.warning(f"Invalid insurance scheme object: {scheme}")
+            insurance = valid_insurance
+
+            insurance.sort(key=lambda x: x['launch_date'], reverse=True)
+
+        except (json.JSONDecodeError, ValueError) as e:
+            logger.error(f"Error parsing Gemini response: {str(e)}")
+            insurance = []
+        except Exception as e:
+            logger.error(f"Gemini query error: {str(e)}")
+            insurance = []
+
+        return jsonify({"insurance": insurance}), 200
 
     except Exception as e:
         logger.error(f"Server error: {str(e)}")

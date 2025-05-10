@@ -1,0 +1,472 @@
+{% extends "base.html" %}
+
+{% block title %}
+<span data-translate="chatbot_title">Vittam.ai - Financial Chatbot</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #1E5F74;
+        --accent-color: #F4A261;
+        --light-color: #F9F4E8;
+        --text-color: #333;
+        --kohl-black: #121212;
+        --kumkum-gold: #C29F50;
+        --sandalwood-cream: #F5EFE6;
+        --indigo-stone: #2E3A59;
+        --peepal-green: #6E8C61;
+        --regal-midnight-blue: #1A2238;
+        --ivory-white: #FAF9F6;
+        --shadow-dark: rgba(0, 0, 0, 0.4);
+        --shadow-light: rgba(0, 0, 0, 0.2);
+        --glow-gold: rgba(194, 159, 80, 0.3);
+        --glow-green: rgba(110, 140, 97, 0.3);
+    }
+
+    body {
+        font-family: 'Montserrat', sans-serif;
+        background: linear-gradient(180deg, var(--light-color) 0%, #e8e8e8 100%);
+        color: var(--text-color);
+        overflow-x: hidden;
+    }
+
+    .hero-section {
+        background: linear-gradient(rgba(30, 95, 116, 0.8), rgba(30, 95, 116, 0.9)), url('https://source.unsplash.com/random/1200x800/?finance,india');
+        background-size: cover;
+        background-position: center;
+        color: white;
+        padding: 4rem 0;
+        margin-bottom: 3rem;
+    }
+
+    .chat-container {
+        max-width: 900px;
+        margin: 2rem auto 4rem;
+        padding: 2.5rem;
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        position: relative;
+    }
+
+    .chat-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .chat-header h2 {
+        font-weight: 700;
+        font-size: 2rem;
+        color: var(--primary-color);
+    }
+
+    .chat-box {
+        width: 100%;
+        height: 400px;
+        overflow-y: auto;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e0e0e0;
+    }
+
+    .message {
+        margin-bottom: 1.2rem;
+        padding: 1rem;
+        border-radius: 10px;
+        max-width: 80%;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    .user-message {
+        background: var(--accent-color);
+        color: white;
+        margin-left: auto;
+        text-align: right;
+    }
+
+    .bot-message {
+        background: var(--sandalwood-cream);
+        color: var(--text-color);
+        margin-right: auto;
+        border: 1px solid #ddd;
+    }
+
+    .bot-message ul {
+        padding-left: 20px;
+        margin: 0.5rem 0;
+    }
+
+    .bot-message li {
+        margin-bottom: 0.5rem;
+        list-style-type: disc;
+    }
+
+    .bot-message p {
+        margin: 0.5rem 0;
+    }
+
+    .input-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #fff;
+        border-radius: 10px;
+        padding: 0.5rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-control {
+        flex: 1;
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        color: var(--text-color);
+        font-weight: 400;
+        height: 50px;
+    }
+
+    .form-control:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 5px rgba(244, 162, 97, 0.5);
+    }
+
+    .form-control::placeholder {
+        color: #6c757d;
+    }
+
+    .btn-send {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.8rem 1.5rem;
+    }
+
+    .btn-mic {
+        background: var(--indigo-stone);
+        color: var(--sandalwood-cream);
+        border: none;
+        border-radius: 8px;
+        padding: 0.8rem 1.5rem;
+    }
+
+    .btn-mic.active {
+        background: var(--peepal-green);
+        color: var(--ivory-white);
+    }
+
+    .lang-select {
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        padding: 0.5rem;
+        color: var(--text-color);
+        height: 50px;
+    }
+
+    .lang-select:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 5px rgba(244, 162, 97, 0.5);
+    }
+
+    .info-box {
+        background-color: var(--light-color);
+        border-left: 4px solid var(--accent-color);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border-radius: 0.25rem;
+    }
+
+    .chat-box::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .chat-box::-webkit-scrollbar-track {
+        background: #e0e0e0;
+    }
+
+    .chat-box::-webkit-scrollbar-thumb {
+        background: var(--accent-color);
+        border-radius: 10px;
+    }
+
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 2rem 0;
+        }
+        .chat-container {
+            margin: 1rem;
+            padding: 1.5rem;
+        }
+        .chat-box {
+            height: 300px;
+        }
+        .input-group {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .form-control, .btn-mic, .btn-send, .lang-select {
+            width: 100%;
+            border-radius: 8px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold" data-translate="chatbot_title">Financial Chatbot</h1>
+        <p class="lead" data-translate="chatbot_subtitle">Chat with our assistant to get answers on loans, finance, and investments in your preferred language</p>
+    </div>
+</section>
+
+<!-- Main Content -->
+<div class="container mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Info Box -->
+            <div class="info-box">
+                <h5 class="mb-2" data-translate="why_use_chatbot">Why use our Financial Chatbot?</h5>
+                <p class="mb-0" data-translate="chatbot_info">Our chatbot provides simple, step-by-step guidance on financial planning, loans, and banking tailored for rural India. Ask your questions via text or voice in English, Hindi, Kannada, Tamil, or Telugu.</p>
+            </div>
+
+            <!-- Chat Container -->
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h2 data-translate="chatbot_header">Financial Assistant</h2>
+                </div>
+                <div class="chat-box" id="chat-box">
+                    {% for message in chat_history %}
+                        {% if message.role == 'user' %}
+                            <div class="message user-message">{{ message.parts[0].text }}</div>
+                        {% else %}
+                            <div class="message bot-message">{{ message.parts[0].text | safe }}</div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="input-group">
+                    <button class="btn btn-mic" id="mic-btn"><i class="fas fa-microphone"></i></button>
+                    <input type="text" id="user-input" class="form-control" data-translate="placeholder" placeholder="Ask about loans, finance, or investments...">
+                    <button class="btn btn-send" id="send-btn"><i class="fas fa-paper-plane"></i></button>
+                    <select class="lang-select" id="lang-select">
+                        <option value="en-US" data-header="Financial Assistant" data-placeholder="Ask about loans, finance, or investments...">English</option>
+                        <option value="hi-IN" data-header="वित्तीय सहायक" data-placeholder="ऋण, वित्त, या निवेश के बारे में पूछें...">Hindi</option>
+                        <option value="kn-IN" data-header="ಆರ್ಥಿಕ ಸಹಾಯಕ" data-placeholder="ಸಾಲ, ಹಣಕಾಸು ಅಥವಾ ಹೂಡಿಕೆಗಳ ಬಗ್ಗೆ ಕೇಳಿ...">Kannada</option>
+                        <option value="ta-IN" data-header="நிதி உதவியாளர்" data-placeholder="கடன்கள், நிதி அல்லது முதலீடுகள் பற்றி கேளுங்கள்...">Tamil</option>
+                        <option value="te-IN" data-header="ఆర్థిక సహాయకుడు" data-placeholder="రుణాలు, ఆర్థికం లేదా పెట్టుబడుల గురించి అడగండి...">Telugu</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Translations for chatbot UI
+    translations.en = {
+        ...translations.en,
+        chatbot_title: "Financial Chatbot",
+        chatbot_subtitle: "Chat with our assistant to get answers on loans, finance, and investments in your preferred language",
+        why_use_chatbot: "Why use our Financial Chatbot?",
+        chatbot_info: "Our chatbot provides simple, step-by-step guidance on financial planning, loans, and banking tailored for rural India. Ask your questions via text or voice in English, Hindi, Kannada, Tamil, or Telugu.",
+        chatbot_header: "Financial Assistant",
+        placeholder: "Ask about loans, finance, or investments...",
+        voice_not_supported: "Voice input is not supported in this browser.",
+        voice_error: "Error with voice input. Please try again."
+    };
+    translations.hi = {
+        ...translations.hi,
+        chatbot_title: "वित्तीय चैटबॉट",
+        chatbot_subtitle: "हमारे सहायक के साथ चैट करें और अपनी पसंदीदा भाषा में ऋण, वित्त और निवेश पर उत्तर प्राप्त करें",
+        why_use_chatbot: "हमारा वित्तीय चैटबॉट क्यों उपयोग करें?",
+        chatbot_info: "हमारा चैटबॉट ग्रामीण भारत के लिए वित्तीय नियोजन, ऋण और बैंकिंग पर सरल, चरण-दर-चरण मार्गदर्शन प्रदान करता है। अंग्रेजी, हिंदी, कन्नड़, तमिल या तेलुगु में अपने प्रश्न टेक्स्ट या वॉयस के माध्यम से पूछें।",
+        chatbot_header: "वित्तीय सहायक",
+        placeholder: "ऋण, वित्त, या निवेश के बारे में पूछें...",
+        voice_not_supported: "इस ब्राउज़र में वॉयस इनपुट समर्थित नहीं है।",
+        voice_error: "वॉयस इनपुट में त्रुटि। कृपया पुनः प्रयास करें।"
+    };
+    translations.kn = {
+        ...translations.kn,
+        chatbot_title: "ಆರ್ಥಿಕ ಚಾಟ್‌ಬಾಟ್",
+        chatbot_subtitle: "ನಮ್ಮ ಸಹಾಯಕರೊಂದಿಗೆ ಚಾಟ್ ಮಾಡಿ ಮತ್ತು ನಿಮ್ಮ ಆದ್ಯತೆಯ ಭಾಷೆಯಲ್ಲಿ ಸಾಲ, ಹಣಕಾಸು ಮತ್ತು ಹೂಡಿಕೆಗಳ ಬಗ್ಗೆ ಉತ್ತರಗಳನ್ನು ಪಡೆಯಿರಿ",
+        why_use_chatbot: "ನಮ್ಮ ಆರ್ಥಿಕ ಚಾಟ್‌ಬಾಟ್ ಏಕೆ ಬಳಸಬೇಕು?",
+        chatbot_info: "ನಮ್ಮ ಚಾಟ್‌ಬಾಟ್ ಗ್ರಾಮೀಣ ಭಾರತಕ್ಕಾಗಿ ಆರ್ಥಿಕ ಯೋಜನೆ, ಸಾಲಗಳು ಮತ್ತು ಬ್ಯಾಂಕಿಂಗ್‌ನಲ್ಲಿ ಸರಳ, ಹಂತ-ಹಂತವಾದ ಮಾರ್ಗದರ್ಶನವನ್ನು ಒದಗಿಸುತ್ತದೆ. ಇಂಗ್ಲಿಷ್, ಹಿಂದಿ, ಕನ್ನಡ, ತಮಿಳು ಅಥವಾ ತೆಲುಗಿನಲ್ಲಿ ನಿಮ್ಮ ಪ್ರಶ್ನೆಗಳನ್ನು ಟೆಕ್ಸ್ಟ್ ಅಥವಾ ಧ್ವನಿಯ ಮೂಲಕ ಕೇಳಿ।",
+        chatbot_header: "ಆರ್ಥಿಕ ಸಹಾಯಕ",
+        placeholder: "ಸಾಲ, ಹಣಕಾಸು ಅಥವಾ ಹೂಡಿಕೆಗಳ ಬಗ್ಗೆ ಕೇಳಿ...",
+        voice_not_supported: "ಈ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಧ್ವನಿ ಒಳಸೇರಿಕೆಯನ್ನು ಬೆಂಬಲಿಸಲಾಗುವುದಿಲ್ಲ。",
+        voice_error: "ಧ್ವನಿ ಒಳಸೇರಿಕೆಯಲ್ಲಿ ದೋಷ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ。"
+    };
+    translations.ta = {
+        chatbot_title: "நிதி உரையாடல் பொறி",
+        chatbot_subtitle: "எங்கள் உதவியாளருடன் உரையாடுங்கள் மற்றும் உங்களுக்கு விருப்பமான மொழியில் கடன்கள், நிதி மற்றும் முதலீடுகள் பற்றிய பதில்களைப் பெறுங்கள்",
+        why_use_chatbot: "எங்கள் நிதி உரையாடல் பொறியை ஏன் பயன்படுத்த வேண்டும்?",
+        chatbot_info: "எங்கள் உரையாடல் பொறி கிராமப்புற இந்தியாவிற்காக நிதி திட்டமிடல், கடன்கள் மற்றும் வங்கி சேவைகளில் எளிய, படிப்படியான வழிகாட்டுதலை வழங்குகிறது. ஆங்கிலம், இந்தி, கன்னடம், தமிழ் அல்லது தெலுங்கில் உங்கள் கேள்விகளை உரை அல்லது குரல் மூலம் கேளுங்கள்。",
+        chatbot_header: "நிதி உதவியாளர்",
+        placeholder: "கடன்கள், நிதி அல்லது முதலீடுகள் பற்றி கேளுங்கள்...",
+        voice_not_supported: "இந்த உலாவியில் குரல் உள்ளீடு ஆதரிக்கப்படவில்லை.",
+        voice_error: "குரல் உள்ளீட்டில் பிழை. மீண்டும் முயற்சிக்கவும்."
+    };
+    translations.te = {
+        chatbot_title: "ఆర్థిక చాట్‌బాట్",
+        chatbot_subtitle: "మా సహాయకుడితో చాట్ చేయండి మరియు మీకు ఇష్టమైన భాషలో రుణాలు, ఆర్థికం మరియు పెట్టుబడుల గురించి సమాధానాలు పొందండి",
+        why_use_chatbot: "మా ఆర్థిక చాట్‌బాట్‌ను ఎందుకు ఉపయోగించాలి?",
+        chatbot_info: "మా చాట్‌బాట్ గ్రామీణ భారతదేశం కోసం ఆర్థిక ప్రణాళిక, రుణాలు మరియు బ్యాంకింగ్‌లో సాలిడ్, దశలవారీ మార్గదర్శనం అందిస్తుంది. ఇంగ్లీష్, హిందీ, కన్నడ, తమిళం లేదా తెలుగులో మీ ప్రశ్నలను టెక్స్ట్ లేదా వాయిస్ ద్వారా అడగండి。",
+        chatbot_header: "ఆర్థిక సహాయకుడు",
+        placeholder: "రుణాలు, ఆర్థికం లేదా పెట్టుబడుల గురించి అడగండి...",
+        voice_not_supported: "ఈ బ్రౌజర్‌లో వాయిస్ ఇన్‌పుట్‌కు మద్దతు లేదు.",
+        voice_error: "వాయిస్ ఇన్‌పుట్‌లో లోపం. దయచేసి మళ్లీ ప్రయత్నించండి."
+    };
+
+    // Chatbot functionality
+    document.addEventListener('DOMContentLoaded', () => {
+        const chatBox = document.getElementById('chat-box');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const micBtn = document.getElementById('mic-btn');
+        const langSelect = document.getElementById('lang-select');
+        const chatHeader = document.getElementById('chat-box').parentElement.querySelector('h2');
+        const currentLanguage = getCurrentLanguage() || 'en';
+        updateContent(currentLanguage);
+
+        // Scroll to bottom of chat box
+        function scrollToBottom() {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Format bot response into HTML
+        function formatBotResponse(content) {
+            const lines = content.split('\n').filter(line => line.trim() !== '');
+            let htmlContent = '';
+            let inList = false;
+
+            lines.forEach(line => {
+                line = line.trim();
+                if (line.match(/^\s*[\*\-]\s/)) {
+                    if (!inList) {
+                        htmlContent += '<ul>';
+                        inList = true;
+                    }
+                    const listItem = line.replace(/^\s*[\*\-]\s/, '');
+                    htmlContent += `<li>${listItem}</li>`;
+                } else {
+                    if (inList) {
+                        htmlContent += '</ul>';
+                        inList = false;
+                    }
+                    htmlContent += `<p>${line}</p>`;
+                }
+            });
+
+            if (inList) {
+                htmlContent += '</ul>';
+            }
+
+            return htmlContent;
+        }
+
+        // Add message to chat box
+        function addMessage(content, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            messageDiv.innerHTML = isUser ? content : formatBotResponse(content);
+            chatBox.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        // Update UI elements based on selected language
+        function updateUIForLanguage() {
+            const selectedOption = langSelect.options[langSelect.selectedIndex];
+            chatHeader.textContent = selectedOption.getAttribute('data-header');
+            userInput.placeholder = selectedOption.getAttribute('data-placeholder');
+            updateContent(langSelect.value.split('-')[0]);
+        }
+
+        // Handle send message
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            const language = langSelect.value;
+            if (!message) return;
+
+            addMessage(message, true);
+            userInput.value = '';
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message, language })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    addMessage(data.response, false);
+                } else {
+                    addMessage(translations[currentLanguage].error_api || 'Error: ' + (data.error || 'Something went wrong'), false);
+                }
+            } catch (error) {
+                addMessage(translations[currentLanguage].error_api || 'Error: Failed to connect to the server', false);
+            }
+        }
+
+        // Voice Input Functionality
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.lang = langSelect.value;
+            langSelect.addEventListener('change', () => {
+                recognition.lang = langSelect.value;
+                updateUIForLanguage();
+            });
+
+            recognition.onstart = () => {
+                micBtn.classList.add('active');
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                userInput.value = transcript;
+                micBtn.classList.remove('active');
+            };
+
+            recognition.onend = () => {
+                micBtn.classList.remove('active');
+            };
+
+            recognition.onerror = (event) => {
+                addMessage(translations[currentLanguage].voice_error || 'Error with voice input: ' + event.error, false);
+                micBtn.classList.remove('active');
+            };
+
+            micBtn.addEventListener('click', () => {
+                if (!micBtn.classList.contains('active')) {
+                    recognition.start();
+                } else {
+                    recognition.stop();
+                }
+            });
+        } else {
+            micBtn.disabled = true;
+            micBtn.title = translations[currentLanguage].voice_not_supported || 'Voice input is not supported in this browser.';
+            addMessage(translations[currentLanguage].voice_not_supported || 'Voice input is not supported in this browser.', false);
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        updateUIForLanguage();
+        scrollToBottom();
+    });
+</script>
+{% endblock %}

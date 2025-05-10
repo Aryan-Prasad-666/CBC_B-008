@@ -1,0 +1,348 @@
+{% extends "base.html" %}
+
+{% block title %}
+<span data-translate="insurance_finder_title">Vittam.ai - Insurance Assistance</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(rgba(30, 95, 116, 0.8), rgba(30, 95, 116, 0.9)), url('https://source.unsplash.com/random/1200x800/?rural,india,insurance');
+        background-size: cover;
+        background-position: center;
+        color: white;
+        padding: 4rem 0;
+        margin-bottom: 3rem;
+    }
+    
+    .search-form {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .insurance-card-container {
+        padding: 0.75rem;
+    }
+    
+    .insurance-card {
+        border: none;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        margin-bottom: 2rem;
+        height: 100%;
+    }
+    
+    .insurance-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .insurance-card .card-body {
+        display: flex;
+        flex-direction: column;
+        min-height: 300px;
+        padding: 1.5rem;
+    }
+    
+    .insurance-card .btn {
+        margin-top: auto;
+        align-self: flex-start;
+    }
+    
+    .insurance-icon {
+        font-size: 2rem;
+        color: var(--primary-color);
+    }
+    
+    .results-container {
+        margin-top: 2rem;
+    }
+    
+    .no-results, .error-message {
+        text-align: center;
+        padding: 3rem;
+    }
+    
+    .error-message {
+        color: #d9534f;
+    }
+    
+    .loading-container {
+        display: none;
+        text-align: center;
+        padding: 2rem;
+    }
+    
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+        color: var(--primary-color);
+    }
+    
+    .info-box {
+        background-color: var(--light-color);
+        border-left: 4px solid var(--accent-color);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border-radius: 0.25rem;
+    }
+    
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 2rem 0;
+        }
+        
+        .search-form {
+            padding: 1rem;
+        }
+        
+        .insurance-card .card-body {
+            min-height: 250px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold" data-translate="insurance_finder_title">Insurance Assistance</h1>
+        <p class="lead" data-translate="insurance_finder_subtitle">Find insurance schemes to protect your family, crops, and assets</p>
+    </div>
+</section>
+
+<!-- Main Content -->
+<div class="container mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Info Box -->
+            <div class="info-box">
+                <h5 class="mb-2" data-translate="why_insurance_finder">Why use our Insurance Finder?</h5>
+                <p class="mb-0" data-translate="insurance_finder_info">Our Insurance Finder helps rural families discover insurance schemes tailored to their needs, such as crop insurance, health insurance, or livestock protection. Enter your location details below to explore government and private insurance options available in your area.</p>
+            </div>
+            
+            <!-- Search Form -->
+            <div class="search-form mb-4">
+                <h3 class="text-center mb-4" data-translate="enter_location">Enter Your Location</h3>
+                <form id="insuranceSearchForm">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="location" class="form-label" data-translate="village_town">Village/Town</label>
+                            <input type="text" class="form-control" id="location" placeholder="e.g., Shivamogga" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="district" class="form-label" data-translate="district">District</label>
+                            <input type="text" class="form-control" id="district" placeholder="e.g., Shivamogga" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="state" class="form-label" data-translate="state">State</label>
+                            <input type="text" class="form-control" id="state" placeholder="e.g., Karnataka" required>
+                        </div>
+                        <div class="col-12 text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg px-5" data-translate="find_insurance">Find Insurance</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Loading Indicator -->
+            <div id="loadingContainer" class="loading-container">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3" data-translate="searching_insurance">Searching for insurance schemes in your area...</p>
+            </div>
+            
+            <!-- Results Container -->
+            <div id="resultsContainer" class="results-container" style="display: none;">
+                <h3 class="mb-4 text-center" data-translate="insurance_near_you">Insurance Schemes Available Near You</h3>
+                <div id="insuranceList" class="row g-4"></div>
+            </div>
+            
+            <!-- No Results Container -->
+            <div id="noResultsContainer" class="no-results" style="display: none;">
+                <i class="fas fa-search fa-3x mb-3 text-muted"></i>
+                <h4 data-translate="no_insurance_found">No insurance schemes found for this location</h4>
+                <p data-translate="try_different_location">Please try a different location or check your spelling.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Translation additions for insurance page
+    translations.en = {
+        ...translations.en,
+        insurance_finder_title: "Insurance Assistance",
+        insurance_finder_subtitle: "Find insurance schemes to protect your family, crops, and assets",
+        why_insurance_finder: "Why use our Insurance Finder?",
+        insurance_finder_info: "Our Insurance Finder helps rural families discover insurance schemes tailored to their needs, such as crop insurance, health insurance, or livestock protection. Enter your location details below to explore government and private insurance options available in your area.",
+        enter_location: "Enter Your Location",
+        village_town: "Village/Town",
+        district: "District",
+        state: "State",
+        find_insurance: "Find Insurance",
+        searching_insurance: "Searching for insurance schemes in your area...",
+        insurance_near_you: "Insurance Schemes Available Near You",
+        no_insurance_found: "No insurance schemes found for this location",
+        try_different_location: "Please try a different location or check your spelling.",
+        learn_more: "Learn More",
+        eligibility: "Eligibility",
+        insurance_found: "insurance schemes found for your location",
+        error_invalid_input: "Please provide valid location details.",
+        error_api: "Error fetching insurance data. Please try again later."
+    };
+    
+    translations.hi = {
+        ...translations.hi,
+        insurance_finder_title: "बीमा सहायता",
+        insurance_finder_subtitle: "अपने परिवार, फसलों और संपत्ति की सुरक्षा के लिए बीमा योजनाएं खोजें",
+        why_insurance_finder: "हमारा बीमा खोजक क्यों उपयोग करें?",
+        insurance_finder_info: "हमारा बीमा खोजक ग्रामीण परिवारों को उनकी आवश्यकताओं के अनुरूप बीमा योजनाएं खोजने में मदद करता है, जैसे फसल बीमा, स्वास्थ्य बीमा, या पशुधन सुरक्षा। अपने क्षेत्र में उपलब्ध सरकारी और निजी बीमा विकल्पों को देखने के लिए नीचे अपने स्थान का विवरण दर्ज करें।",
+        enter_location: "अपना स्थान दर्ज करें",
+        village_town: "गांव/शहर",
+        district: "जिला",
+        state: "राज्य",
+        find_insurance: "बीमा खोजें",
+        searching_insurance: "आपके क्षेत्र में बीमा योजनाओं की खोज कर रहे हैं...",
+        insurance_near_you: "आपके पास उपलब्ध बीमा योजनाएं",
+        no_insurance_found: "इस स्थान के लिए कोई बीमा योजना नहीं मिली",
+        try_different_location: "कृपया अलग स्थान आज़माएं या अपनी वर्तनी जांचें।",
+        learn_more: "अधिक जानें",
+        eligibility: "पात्रता",
+        insurance_found: "बीमा योजनाएं आपके स्थान के लिए मिलीं",
+        error_invalid_input: "कृपया मान्य स्थान विवरण प्रदान करें।",
+        error_api: "बीमा डेटा प्राप्त करने में त्रुटि। कृपया बाद में पुनः प्रयास करें।"
+    };
+    
+    translations.kn = {
+        ...translations.kn,
+        insurance_finder_title: "ವಿಮೆ ಸಹಾಯ",
+        insurance_finder_subtitle: "ನಿಮ್ಮ ಕುಟುಂಬ, ಬೆಳೆಗಳು ಮತ್ತು ಆಸ್ತಿಗಳನ್ನು ರಕ್ಷಿಸಲು ವಿಮೆ ಯೋಜನೆಗಳನ್ನು ಕಂಡುಕೊಳ್ಳಿ",
+        why_insurance_finder: "ನಮ್ಮ ವಿಮೆ ಹುಡುಕಾಟವನ್ನು ಏಕೆ ಬಳಸಬೇಕು?",
+        insurance_finder_info: "ನಮ್ಮ ವಿಮೆ ಹುಡುಕಾಟವು ಗ್ರಾಮೀಣ ಕುಟುಂಬಗಳಿಗೆ ಬೆಳೆ ವಿಮೆ, ಆರೋಗ್ಯ ವಿಮೆ, ಅಥವಾ ಪಶುಸಂಗೋಪನೆ ರಕ್ಷಣೆಯಂತಹ ಅವರ ಅಗತ್ಯಗಳಿಗೆ ಸೂಕ್ತವಾದ ವಿಮೆ ಯೋಜನೆಗಳನ್ನು ಕಂಡುಹಿಡಿಯಲು ಸಹಾಯ ಮಾಡುತ್ತದೆ। ನಿಮ್ಮ ಪ್ರದೇಶದಲ್ಲಿ ಲಭ್ಯವಿರುವ ಸರ್ಕಾರಿ ಮತ್ತು ಖಾಸಗಿ ವಿಮೆ ಆಯ್ಕೆಗಳನ್ನು ಕಂಡುಕೊಳ್ಳಲು ಕೆಳಗೆ ನಿಮ್ಮ ಸ್ಥಳದ ವಿವರಗಳನ್ನು ನಮೂದಿಸಿ।",
+        enter_location: "ನಿಮ್ಮ ಸ್ಥಳವನ್ನು ನಮೂದಿಸಿ",
+        village_town: "ಗ್ರಾಮ/ಪಟ್ಟಣ",
+        district: "ಜಿಲ್ಲೆ",
+        state: "ರಾಜ್ಯ",
+        find_insurance: "ವಿಮೆ ಹುಡುಕಿ",
+        searching_insurance: "ನಿಮ್ಮ ಪ್ರದೇಶದಲ್ಲಿ ವಿಮೆ ಯೋಜನೆಗಳನ್ನು ಹುಡುಕುತ್ತಿದ್ದೇವೆ...",
+        insurance_near_you: "ನಿಮ್ಮ ಹತ್ತಿರ ಲಭ್ಯವಿರುವ ವಿಮೆ ಯೋಜನೆಗಳು",
+        no_insurance_found: "ಈ ಸ್ಥಳಕ್ಕೆ ಯಾವುದೇ ವಿಮೆ ಯೋಜನೆಗಳು ಕಂಡುಬಂದಿಲ್ಲ",
+        try_different_location: "ದಯವಿಟ್ಟು ಬೇರೆ ಸ್ಥಳವನ್ನು ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ನಿಮ್ಮ ಕಾಗುಣಿತವನ್ನು ಪರಿಶೀಲಿಸಿ。",
+        learn_more: "ಇನ್ನಷ್ಟು ತಿಳಿಯಿರಿ",
+        eligibility: "ಅರ್ಹತೆ",
+        insurance_found: "ವಿಮೆ ಯೋಜನೆಗಳು ನಿಮ್ಮ ಸ್ಥಳಕ್ಕೆ ಕಂಡುಬಂದಿವೆ",
+        error_invalid_input: "ದಯವಿಟ್ಟು ಮಾನ್ಯ ಸ್ಥಳದ ವಿವರಗಳನ್ನು ಒದಗಿಸಿ。",
+        error_api: "ವಿಮೆ ಡೇಟಾವನ್ನು ಪಡೆಯುವಲ್ಲಿ ದೋಷ. ದಯವಿಟ್ಟು ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ。"
+    };
+
+    // Handle insurance search form submission
+    document.addEventListener('DOMContentLoaded', () => {
+        const insuranceSearchForm = document.getElementById('insuranceSearchForm');
+        const loadingContainer = document.getElementById('loadingContainer');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const noResultsContainer = document.getElementById('noResultsContainer');
+        const currentLanguage = getCurrentLanguage();
+        updateContent(currentLanguage);
+
+        insuranceSearchForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Get form values
+            const location = document.getElementById('location').value.trim();
+            const district = document.getElementById('district').value.trim();
+            const state = document.getElementById('state').value.trim();
+            
+            // Validate inputs
+            if (!location || !district || !state) {
+                noResultsContainer.innerHTML = `<h4 class="error-message" data-translate="error_invalid_input">${translations[currentLanguage].error_invalid_input}</h4>`;
+                noResultsContainer.style.display = 'block';
+                resultsContainer.style.display = 'none';
+                return;
+            }
+            
+            // Show loading, hide results and no results
+            loadingContainer.style.display = 'block';
+            resultsContainer.style.display = 'none';
+            noResultsContainer.style.display = 'none';
+            
+            try {
+                // Make API request to find insurance schemes
+                const response = await fetch('/find_insurance', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ location, district, state })
+                });
+                
+                const data = await response.json();
+                
+                // Hide loading
+                loadingContainer.style.display = 'none';
+                
+                if (data.error) {
+                    // Show error message
+                    noResultsContainer.innerHTML = `<h4 class="error-message" data-translate="error_api">${translations[currentLanguage].error_api}</h4>`;
+                    noResultsContainer.style.display = 'block';
+                    console.error('Error:', data.error);
+                } else if (data.insurance && data.insurance.length > 0) {
+                    // Show results
+                    resultsContainer.style.display = 'block';
+                    
+                    // Display insurance schemes
+                    const insuranceListContainer = document.getElementById('insuranceList');
+                    insuranceListContainer.innerHTML = '';
+                    
+                    // Show the number of insurance schemes found
+                    const insuranceFoundCount = document.createElement('div');
+                    insuranceFoundCount.className = 'col-12 mb-3';
+                    insuranceFoundCount.innerHTML = `<p class="lead text-center"><strong>${data.insurance.length}</strong> ${translations[currentLanguage].insurance_found}</p>`;
+                    insuranceListContainer.appendChild(insuranceFoundCount);
+                    
+                    // Display each insurance scheme
+                    data.insurance.forEach((scheme, index) => {
+                        const insuranceCard = document.createElement('div');
+                        insuranceCard.className = 'col-md-6 col-lg-4 insurance-card-container';
+                        insuranceCard.innerHTML = `
+                            <div class="card insurance-card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="me-3">
+                                            <div class="insurance-icon rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                <span class="fw-bold">${index + 1}</span>
+                                            </div>
+                                        </div>
+                                        <h5 class="card-title mb-0">${scheme.name}</h5>
+                                    </div>
+                                    <p class="card-text mb-3">${scheme.description}</p>
+                                    <p class="card-text mb-3"><strong data-translate="eligibility">${translations[currentLanguage].eligibility}:</strong> ${scheme.eligibility}</p>
+                                    <a href="${scheme.link}" target="_blank" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-info-circle me-1"></i> ${translations[currentLanguage].learn_more}
+                                    </a>
+                                </div>
+                            </div>
+                        `;
+                        insuranceListContainer.appendChild(insuranceCard);
+                    });
+                } else {
+                    // Show no results
+                    noResultsContainer.style.display = 'block';
+                }
+            } catch (error) {
+                // Hide loading, show error message
+                loadingContainer.style.display = 'none';
+                noResultsContainer.innerHTML = `<h4 class="error-message" data-translate="error_api">${translations[currentLanguage].error_api}</h4>`;
+                noResultsContainer.style.display = 'block';
+                console.error('Error:', error);
+            }
+        });
+    });
+</script>
+{% endblock %}
