@@ -148,13 +148,19 @@
                         <ul class="dropdown-menu" aria-labelledby="financialDropdown">
                             <li><a class="dropdown-item" href="/microloan" data-translate="nav_microloan">Microloan Assistance</a></li>
                             <li><a class="dropdown-item" href="/schemes" data-translate="nav_schemes">Government Schemes</a></li>
-                            <li><a class="dropdown-item" href="/document-analyzer" data-translate="nav_document_analyzer">Document Analyzer</a></li>
+                            <li><a class="dropdown-item" href="/document_analyzer" data-translate="nav_document_analyzer">Document Analyzer</a></li>
+                            <li><a class="dropdown-item" href="/financial_assistant" data-translate="nav_financial_assistant">Financial Assistant</a></li>
+                            <li><a class="dropdown-item" href="/insurance" data-translate="nav_insurance">Insurance</a></li>
+                            <li><a class="dropdown-item" href="/atm_assistance" data-translate="nav_atm_assistance">ATM Assistance</a></li>
+                            <li><a class="dropdown-item" href="/locker" data-translate="nav_locker">Locker Assistance</a></li>
+                            <li><a class="dropdown-item" href="/banks" data-translate="nav_banks">Banks</a></li>
                         </ul>
                     </li>
-                    <li class="nav-item"><a class="nav-link" href="/business" data-translate="nav_business_tools">Business Tools</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/expense-tracker" data-translate="nav_expense_tracker">Expense Tracker</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/expense_tracker" data-translate="nav_expense_tracker">Expense Tracker</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/chatbot" data-translate="nav_business_assistance">Business Assistance</a></li>
                     <li class="nav-item"><a class="nav-link" href="/about" data-translate="nav_about">About Us</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/contact" data-translate="nav_contact">Contact</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/signup" data-translate="nav_signup">Sign Up</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/login" data-translate="nav_login">Login</a></li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="languageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-globe me-1"></i><span data-translate="nav_language">Language</span>
@@ -194,19 +200,22 @@
                     <ul class="footer-links">
                         <li><a href="/microloan" data-translate="footer_microloans">Microloans</a></li>
                         <li><a href="/schemes" data-translate="footer_schemes">Govt. Schemes</a></li>
-                        <li><a href="/document-analyzer" data-translate="footer_doc_analysis">Doc Analysis</a></li>
-                        <li><a href="/business" data-translate="footer_business_tools">Business Tools</a></li>
-                        <li><a href="/expense-tracker" data-translate="footer_expense_tracker">Expense Tracker</a></li>
+                        <li><a href="/document_analyzer" data-translate="footer_doc_analysis">Doc Analysis</a></li>
+                        <li><a href="/financial_assistant" data-translate="footer_financial_assistant">Financial Assistant</a></li>
+                        <li><a href="/insurance" data-translate="footer_insurance">Insurance</a></li>
+                        <li><a href="/atm_assistance" data-translate="footer_atm_assistance">ATM Assistance</a></li>
+                        <li><a href="/locker" data-translate="footer_locker">Locker Assistance</a></li>
+                        <li><a href="/banks" data-translate="footer_banks">Banks</a></li>
+                        <li><a href="/expense_tracker" data-translate="footer_expense_tracker">Expense Tracker</a></li>
+                        <li><a href="/chatbot" data-translate="footer_business_assistance">Business Assistance</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-2 col-md-6 footer-section">
                     <h5 class="footer-heading" data-translate="footer_company">Company</h5>
                     <ul class="footer-links">
                         <li><a href="/about" data-translate="footer_about">About Us</a></li>
-                        <li><a href="/team" data-translate="footer_team">Our Team</a></li>
-                        <li><a href="/careers" data-translate="footer_careers">Careers</a></li>
-                        <li><a href="/blog" data-translate="footer_blog">Blog</a></li>
-                        <li><a href="/contact" data-translate="footer_contact">Contact Us</a></li>
+                        <li><a href="/signup" data-translate="footer_signup">Sign Up</a></li>
+                        <li><a href="/login" data-translate="footer_login">Login</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-4 col-md-6 footer-section">
@@ -226,11 +235,11 @@
             <hr class="mt-4 mb-4" style="border-color: rgba(255, 255, 255, 0.1);">
             <div class="row">
                 <div class="col-md-6 text-center text-md-start">
-                    <p data-translate="footer_copyright">&copy; 2025 Vittam.ai. All rights reserved.</p>
+                    <p data-translate="footer_copyright">© 2025 Vittam.ai. All rights reserved.</p>
                 </div>
                 <div class="col-md-6 text-center text-md-end">
                     <a href="/privacy" class="me-3" data-translate="footer_privacy">Privacy Policy</a>
-                    <a href="/terms" data-translate="footer_terms">Terms of Service</a>
+                    <a href="/terms" class="me-3" data-translate="footer_terms">Terms of Service</a>
                 </div>
             </div>
         </div>
@@ -249,10 +258,16 @@
                 nav_microloan: "Microloan Assistance",
                 nav_schemes: "Government Schemes",
                 nav_document_analyzer: "Document Analyzer",
-                nav_business_tools: "Business Tools",
+                nav_financial_assistant: "Financial Assistant",
+                nav_insurance: "Insurance",
+                nav_atm_assistance: "ATM Assistance",
+                nav_locker: "Locker Assistance",
+                nav_banks: "Banks",
                 nav_expense_tracker: "Expense Tracker",
+                nav_business_assistance: "Business Assistance",
                 nav_about: "About Us",
-                nav_contact: "Contact",
+                nav_signup: "Sign Up",
+                nav_login: "Login",
                 nav_language: "Language",
                 footer_vittam: "Vittam.ai",
                 footer_description: "Empowering rural communities with accessible financial and business tools for sustainable growth and prosperity.",
@@ -260,14 +275,17 @@
                 footer_microloans: "Microloans",
                 footer_schemes: "Govt. Schemes",
                 footer_doc_analysis: "Doc Analysis",
-                footer_business_tools: "Business Tools",
+                footer_financial_assistant: "Financial Assistant",
+                footer_insurance: "Insurance",
+                footer_atm_assistance: "ATM Assistance",
+                footer_locker: "Locker Assistance",
+                footer_banks: "Banks",
                 footer_expense_tracker: "Expense Tracker",
+                footer_business_assistance: "Business Assistance",
                 footer_company: "Company",
                 footer_about: "About Us",
-                footer_team: "Our Team",
-                footer_careers: "Careers",
-                footer_blog: "Blog",
-                footer_contact: "Contact Us",
+                footer_signup: "Sign Up",
+                footer_login: "Login",
                 footer_contact_us: "Contact Us",
                 footer_address: "123 Financial District, Bengaluru, Karnataka, India",
                 footer_phone: "+91 9876543210",
@@ -285,10 +303,16 @@
                 nav_microloan: "माइक्रोलोन सहायता",
                 nav_schemes: "सरकारी योजनाएँ",
                 nav_document_analyzer: "दस्तावेज़ विश्लेषक",
-                nav_business_tools: "व्यवसाय उपकरण",
+                nav_financial_assistant: "वित्तीय सहायक",
+                nav_insurance: "बीमा",
+                nav_atm_assistance: "एटीएम सहायता",
+                nav_locker: "लॉकर सहायता",
+                nav_banks: "बैंक",
                 nav_expense_tracker: "खर्च ट्रैकर",
+                nav_business_assistance: "व्यवसाय सहायता",
                 nav_about: "हमारे बारे में",
-                nav_contact: "संपर्क करें",
+                nav_signup: "साइन अप",
+                nav_login: "लॉगिन",
                 nav_language: "भाषा",
                 footer_vittam: "वित्तम.एआई",
                 footer_description: "ग्रामीण समुदायों को सतत विकास और समृद्धि के लिए सुलभ वित्तीय और व्यावसायिक उपकरणों के साथ सशक्त बनाना।",
@@ -296,14 +320,17 @@
                 footer_microloans: "माइक्रोलोन",
                 footer_schemes: "सरकारी योजनाएँ",
                 footer_doc_analysis: "दस्तावेज़ विश्लेषण",
-                footer_business_tools: "व्यवसाय उपकरण",
+                footer_financial_assistant: "वित्तीय सहायक",
+                footer_insurance: "बीमा",
+                footer_atm_assistance: "एटीएम सहायता",
+                footer_locker: "लॉकर सहायता",
+                footer_banks: "बैंक",
                 footer_expense_tracker: "खर्च ट्रैकर",
+                footer_business_assistance: "व्यवसाय सहायता",
                 footer_company: "कंपनी",
                 footer_about: "हमारे बारे में",
-                footer_team: "हमारी टीम",
-                footer_careers: "करियर",
-                footer_blog: "ब्लॉग",
-                footer_contact: "संपर्क करें",
+                footer_signup: "साइन अप",
+                footer_login: "लॉगिन",
                 footer_contact_us: "हमसे संपर्क करें",
                 footer_address: "123 वित्तीय जिला, बेंगलुरु, कर्नाटक, भारत",
                 footer_phone: "+91 9876543210",
@@ -321,10 +348,16 @@
                 nav_microloan: "ಸಣ್ಣ ಸಾಲ ಸಹಾಯ",
                 nav_schemes: "ಸರ್ಕಾರಿ ಯೋಜನೆಗಳು",
                 nav_document_analyzer: "ದಾಖಲೆ ವಿಶ್ಲೇಷಕ",
-                nav_business_tools: "ವ್ಯಾಪಾರ ಸಾಧನಗಳು",
+                nav_financial_assistant: "ಆರ್ಥಿಕ ಸಹಾಯಕ",
+                nav_insurance: "ವಿಮೆ",
+                nav_atm_assistance: "ಎಟಿಎಂ ಸಹಾಯ",
+                nav_locker: "ಲಾಕರ್ ಸಹಾಯ",
+                nav_banks: "ಬ್ಯಾಂಕುಗಳು",
                 nav_expense_tracker: "ವೆಚ್ಚ ಟ್ರ್ಯಾಕರ್",
+                nav_business_assistance: "ವ್ಯಾಪಾರ ಸಹಾಯ",
                 nav_about: "ನಮ್ಮ ಬಗ್ಗೆ",
-                nav_contact: "ಸಂಪರ್ಕಿಸಿ",
+                nav_signup: "ಸೈನ್ ಅಪ್",
+                nav_login: "ಲಾಗಿನ್",
                 nav_language: "ಭಾಷೆ",
                 footer_vittam: "ವಿತ್ತಮ್.ಎಐ",
                 footer_description: "ಗ್ರಾಮೀಣ ಸಮುದಾಯಗಳನ್ನು ಸುಸ್ಥಿರ ಬೆಳವಣಿಗೆ ಮತ್ತು ಸಮೃದ್ಧಿಗಾಗಿ ಸುಲಭವಾದ ಆರ್ಥಿಕ ಮತ್ತು ವ್ಯಾಪಾರ ಸಾಧನಗಳೊಂದಿಗೆ ಸಬಲೀಕರಣಗೊಳಿಸುವುದು.",
@@ -332,14 +365,17 @@
                 footer_microloans: "ಸಣ್ಣ ಸಾಲಗಳು",
                 footer_schemes: "ಸರ್ಕಾರಿ ಯೋಜನೆಗಳು",
                 footer_doc_analysis: "ದಾಖಲೆ ವಿಶ್ಲೇಷಣೆ",
-                footer_business_tools: "ವ್ಯಾಪಾರ ಸಾಧನಗಳು",
+                footer_financial_assistant: "ಆರ್ಥಿಕ ಸಹಾಯಕ",
+                footer_insurance: "ವಿಮೆ",
+                footer_atm_assistance: "ಎಟಿಎಂ ಸಹಾಯ",
+                footer_locker: "ಲಾಕರ್ ಸಹಾಯ",
+                footer_banks: "ಬ್ಯಾಂಕುಗಳು",
                 footer_expense_tracker: "ವೆಚ್ಚ ಟ್ರ್ಯಾಕರ್",
+                footer_business_assistance: "ವ್ಯಾಪಾರ ಸಹಾಯ",
                 footer_company: "ಕಂಪನಿ",
                 footer_about: "ನಮ್ಮ ಬಗ್ಗೆ",
-                footer_team: "ನಮ್ಮ ತಂಡ",
-                footer_careers: "ವೃತ್ತಿಗಳು",
-                footer_blog: "ಬ್ಲಾಗ್",
-                footer_contact: "ಸಂಪರ್ಕಿಸಿ",
+                footer_signup: "ಸೈನ್ ಅಪ್",
+                footer_login: "ಲಾಗಿನ್",
                 footer_contact_us: "ನಮ್ಮನ್ನು ಸಂಪರ್ಕಿಸಿ",
                 footer_address: "123 ಆರ್ಥಿಕ ಜಿಲ್ಲೆ, ಬೆಂಗಳೂರು, ಕರ್ನಾಟಕ, ಭಾರತ",
                 footer_phone: "+91 9876543210",
