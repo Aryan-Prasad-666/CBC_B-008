@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, flash, redirect, url_for
+from flask import Flask, render_template, request, jsonify, flash, redirect, url_for, session
 from werkzeug.exceptions import BadRequest, InternalServerError
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import PromptTemplate
@@ -14,11 +14,14 @@ from PIL import Image
 import PyPDF2
 import docx
 import sqlite3
+from datetime import datetime
+import numpy as np
+from dateutil.relativedelta import relativedelta
 
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY', 'your-secret-key')  # Needed for flash messages
+app.secret_key = os.getenv('SECRET_KEY', 'your-secret-key')
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -33,6 +36,16 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL
+        )
+    ''')
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS bills (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            bill_type TEXT NOT NULL,
+            amount REAL NOT NULL,
+            bill_date TEXT NOT NULL,
+            file_path TEXT
         )
     ''')
     conn.commit()
@@ -53,7 +66,7 @@ llm = ChatGoogleGenerativeAI(
     model="gemini-2.0-flash",
     google_api_key=GEMINI_API_KEY,
     temperature=0.5,
-    max_output_tokens=1000
+    max_output_tokens=1500
 )
 
 # Language instructions for chatbot
@@ -76,7 +89,7 @@ language_instructions = {
     "ta-IN": {
         "general": "நீங்கள் இந்திய கிராமவாசிகளுக்காக உள்ள நட்பு நிதி ஆலோசகர், அவர்களுக்கு நிதி பற்றிய முந்தைய அறிவு இல்லை. நிதி திட்டமிடல், கடன்கள், முதலீடுகள் மற்றும் வங்கி சேவைகள் தொடர்பாக தமிழில் எளிமையான, விரிவான மற்றும் பொறுமையான பதில்களை வழங்கவும், கிராமப்புற வாழ்க்கைக்கு தொடர்புடைய எடுத்துக்காட்டுகளை (எ.கா., விவசாய கடன்கள், பயிர்களுக்கான சேமிப்பு) பயன்படுத்தவும். அடிப்படை கருத்துகளை படி-படியாக விளக்கவும், பயனருக்கு நிதி பற்றி எதுவும் தெரியாது என்று கருதவும். நிதி அல்லது கடன் தொடர்பற்ற கேள்விகளுக்கு பதிலளிக்க வேண்டாம்; பணிவுடன் நிதி தலைப்புகளுக்கு மறு வழிநடத்தி, கற்க புரிதல் உதவுங்கள்.",
         "ATM assistance": "நீங்கள் இந்திய கிராமவாசிகளுக்காக உள்ள நட்பு ஏடிஎம் பயன்பாட்டு உதவியாளர், அவர்களுக்கு வங்கி பற்றிய முந்தைய அறிவு இல்லை. ஏடிஎம் பயன்பாடு (எ.கா., பணம் எடுப்பது, இருப்பு சரிபார்ப்பது, பின் பாதுகாப்பு) பற்றி தமிழில் எளிமையான, படி-படியான மற்றும் பொறுமையான பதில்களை வழங்கவும். கிராமப்புற வாழ்க்கைக்கு தொடர்புடைய எடுத்துக்காட்டுகளைப் பயன்படுத்தவும் (எ.கா., விவசாயத் தேவைகளுக்கு பணம் எடுப்பது). ஒவ்வொரு படியையும் தெளிவாக விளக்கவும், பயனர் ஏடிஎம்மைப் பயன்படுத்தவில்லை என்று கருதவும். ஏடிஎம் பயன்பாட்டுக்கு தொடர்பில்லாத கேள்விகளுக்கு பதிலளிக்க வேண்டாம்; பணிவுடன் ஏடிஎம் தொடர்பான தலைப்புகளுக்கு மறு வழிநடத்தி, கற்க ஊக்குவிக்கவும்.",
-        "locker assistance": "நீங்கள் இந்திய கிராமவாசிகளுக்காக உள்ள நட்பு லாக்கர் வசதி உதவியாளர், அவர்களுக்கு வங்கி பற்றிய முந்தைய அறிவு இல்லை. வங்கி லாக்கர் வசதிகள் (எ.கா., லாக்கர் வாடகைக்கு எடுப்பது, அதைப் பயன்படுத்துவது, பாதுகாப்பு குறிப்புகள்) பற்றி தமிழில் எளிமையான, படி-படியான மற்றும் பொறுமையான பதில்களை வழங்கவும். கிராமப்புற வாழ்க்கைக்கு தொடர்புடைய எடுத்துக்காட்டுகளைப் பயன்படுத்தவும் (எ.கா., பயிர் வருவாய் அல்லது குடும்ப நகைகளை சேமித்தல்). ஒவ்வொரு படியையும் தெளிவாக விளக்கவும், பயனர் லாக்கரைப் பயன்படுத்தவில்லை என்று கருதவும். லாக்கர் வசதிகளுக்கு தொடர்பில்லாத கேள்விகளுக்கு பதிலளிக்க வேண்டாம்; பணிவுடன் லாக்கர் தொடர்பான தலைப்புகளுக்கு மறு வழிநடத்தி, கற்க ஊக்குவிக்கவும்."
+        "locker assistance": "நீங்கள் இந்திய கிராமவாசிகளுக்காக உள்ள நட்பு லாக்கர் வசதி உதவியாளர், அவர்களுக்கு வங்கி பற்றிய முந்தைய அறிவு இல்லை. வங்கி லாக்கர் வசதிகள் (எ.கா., லாக்கர் வாடகைக்கு எடுப்பது, அதைப் பயன்படுத்துவது, பாதுகாப்பு குறிப்புகள்) பற்றி தமிழில் எளிமையான, படி-படியான மற்றும் பொறுமையான பதில்களை வழங்கவும். கிராமப்புற வாழ்க்கைக்கு தொடர்புடைய எடுத்துக்காட்டுகளைப் பயன்படுத்தவும் (எ.கா., பயிர் வருவாய் அல்லது குடும்ப நகைகளை சேமித்தல்). ஒவ்வொரு படியையும் தெளிவாக விளக்கவும், பயனர் லாக்கரைப் பயன்படுத்தவில्लை என்று கருதவும். லாக்கர் வசதிகளுக்கு தொடர்பில்லாத கேள்விகளுக்கு பதிலளிக்க வேண்டாம்; பணிவுடன் லாக்கர் தொடர்பான தலைப்புகளுக்கு மறு வழிநடத்தி, கற்க ஊக்குவிக்கவும்."
     },
     "te-IN": {
         "general": "మీరు భారతీయ గ్రామస్తుల కోసం స్నేహపూర్వకమైన ఆర్థిక సలహాదారుడు, వీరికి ఆర్థిక జ్ఞానం లేదు. ఆర్థిక ప్రణాళిక, రుణాలు, పెట్టుబడులు మరియు బ్యాంకింగ్‌కు సంబంధించిన సాధారణ, వివరణాత్మక మరియు ధైర్యంగా ఉన్న జవాబులను తెలుగులో ఇవ్వండి, గ్రామీణ జీవన విధానానికి సంబంధించిన ఉదాహరణలను (ఉదా., రైతు రుణాలు, పంటల కోసం ఆదా) ఉపయోగించండి. మౌలిక భావనలను దశ-దశల వారీగా వివరించండి, వినియోగదారుడు ఆర్థిక విషయాల గురించి ఏమీ తెలియదని భావించండి. ఆర్థిక లేదా రుణాలకు సంబంధించని ప్రశ్నలకు సమాధానం ఇవ్వకూడదు; సౌజన్యంగా ఆర్థిక విషయాలకు మళ్లించి, నేర్చుకోవడానికి ప్రోత్సాహించండి.",
@@ -529,7 +542,6 @@ def analyze_document():
                 content += page.extract_text() or ""
         elif file.filename.endswith(('.jpg', '.jpeg', '.png')):
             image = Image.open(file)
-            # Simulate OCR (Gemini doesn't process images directly, so assume text extraction)
             content = f"Sample {document_type} document content extracted from image."
         elif file.filename.endswith(('.doc', '.docx')):
             doc = docx.Document(file)
@@ -583,7 +595,7 @@ def analyze_document():
         )
 
         prompt = prompt_template.format(
-            content=content[:1000],  # Limit content to avoid token limits
+            content=content[:1000],
             document_type=document_type,
             language={'en': 'English', 'hi': 'Hindi', 'kn': 'Kannada'}[language]
         )
@@ -635,17 +647,14 @@ def financial_assistant_post():
         query = data['query'].strip()
         language = data['language'].strip().lower()
 
-        # Validate language
         valid_languages = ['en', 'hi', 'kn']
         if language not in valid_languages:
             logger.warning(f"Invalid language '{language}', defaulting to 'en'")
             language = 'en'
 
-        # Map language codes to names
         language_names = {'en': 'English', 'hi': 'Hindi', 'kn': 'Kannada'}
         language_name = language_names[language]
 
-        # Define prompt template for Gemini
         prompt_template = PromptTemplate(
             input_variables=["query", "language_name"],
             template=""" 
@@ -665,19 +674,16 @@ def financial_assistant_post():
             """
         )
 
-        # Create prompt
         prompt = prompt_template.format(
             query=query,
             language_name=language_name
         )
 
-        # Query Gemini
         try:
             logger.debug(f"Sending prompt to Gemini: {prompt[:200]}...")
             response = llm.invoke(prompt)
             logger.debug(f"Gemini response: {response.content}")
 
-            # Use the plain text response
             answer = response.content.strip()
             if not answer:
                 logger.warning("Empty response from Gemini")
@@ -711,26 +717,22 @@ def chat():
         data = request.json
         user_input = data.get('message')
         language = data.get('language', 'en-US')
-        context = data.get('context', 'general')  # Default to general financial queries
+        context = data.get('context', 'general')
         if not user_input or not isinstance(user_input, str) or not user_input.strip():
             raise BadRequest("Invalid or empty message")
 
-        # Validate language
         valid_languages = ['en-US', 'hi-IN', 'kn-IN', 'ta-IN', 'te-IN']
         if language not in valid_languages:
             logger.warning(f"Invalid language '{language}', defaulting to 'en-US'")
             language = 'en-US'
 
-        # Validate context
         valid_contexts = ['general', 'ATM assistance', 'locker assistance']
         if context not in valid_contexts:
             logger.warning(f"Invalid context '{context}', defaulting to 'general'")
             context = 'general'
 
-        # Get system instruction for the selected language and context
         system_instruction = language_instructions.get(language, language_instructions['en-US']).get(context, language_instructions['en-US']['general'])
 
-        # Define prompt template
         prompt_template = PromptTemplate(
             input_variables=["system_instruction", "user_input"],
             template=""" 
@@ -747,13 +749,11 @@ def chat():
             """
         )
 
-        # Create prompt
         prompt = prompt_template.format(
             system_instruction=system_instruction,
             user_input=user_input
         )
 
-        # Query Gemini
         try:
             logger.debug(f"Sending prompt to Gemini: {prompt[:200]}...")
             response = llm.invoke(prompt)
@@ -909,6 +909,273 @@ def locker():
     lang = request.args.get('lang', 'en')
     return render_template('locker.html', lang=lang)
 
+# Expense Tracker Routes
+@app.route('/expense_tracker')
+def expense_tracker():
+    lang = request.args.get('lang', 'en')
+    return render_template('expense_tracker.html', lang=lang)
+
+@app.route('/upload_bill', methods=['POST'])
+def upload_bill():
+    try:
+        if 'file' not in request.files:
+            return jsonify({"error": "No file provided"}), 400
+
+        file = request.files['file']
+        bill_type = request.form.get('bill_type', 'other').lower()
+        user_id = request.form.get('user_id', 1)  # Default to 1 for demo
+
+        if not file.filename:
+            return jsonify({"error": "No file selected"}), 400
+
+        # Validate file type
+        allowed_extensions = {'pdf', 'jpg', 'jpeg', 'png'}
+        if file.filename.rsplit('.', 1)[-1].lower() not in allowed_extensions:
+            return jsonify({"error": "Unsupported file type. Use PDF, JPG, or PNG."}), 400
+
+        # Save file
+        upload_folder = 'uploads/bills'
+        os.makedirs(upload_folder, exist_ok=True)
+        file_path = os.path.join(upload_folder, f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{file.filename}")
+        file.save(file_path)
+
+        # Extract content
+        content = ""
+        if file.filename.endswith('.pdf'):
+            pdf_reader = PyPDF2.PdfReader(file)
+            for page in pdf_reader.pages:
+                text = page.extract_text()
+                content += text or ""
+        elif file.filename.endswith(('.jpg', '.jpeg', '.png')):
+            content = f"Sample {bill_type} bill content extracted from image."
+
+        if not content.strip():
+            content = f"Placeholder content for {bill_type} bill in rural India."
+
+        # Use Gemini to extract only the amount
+        prompt_template = PromptTemplate(
+            input_variables=["content", "bill_type"],
+            template=""" 
+            You are a bill analysis assistant for rural Indian households. Extract only the total bill amount from the provided {bill_type} bill content, focusing on typical bill formats in India.
+
+            Content:
+            {content}
+
+            Instructions:
+            - Extract the following field:
+              - amount: Total bill amount in INR (numeric, e.g., 1500.50).
+            - Return a JSON object with only the 'amount' field.
+            - If the amount is not found, return {"amount": 0.0}.
+            - Do not include markdown, explanations, or extra text—only the JSON object.
+
+            Example Output:
+            {{
+                "amount": 1500.50
+            }}
+            """
+        )
+
+        prompt = prompt_template.format(content=content[:1000], bill_type=bill_type)
+        try:
+            response = llm.invoke(prompt)
+            response_content = re.sub(r'^```json\s*|\s*```$', '', response.content).strip()
+            extracted_data = json.loads(response_content)
+            amount = extracted_data.get('amount', 0.0)
+        except Exception as e:
+            logger.error(f"Gemini extraction error: {str(e)}")
+            amount = 0.0
+
+        # Store in SQLite
+        conn = sqlite3.connect('users.db')
+        c = conn.cursor()
+        c.execute('''
+            INSERT INTO bills (user_id, bill_type, amount, bill_date, file_path)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (
+            user_id,
+            bill_type,
+            amount,
+            datetime.now().strftime('%Y-%m-%d'),
+            file_path
+        ))
+        conn.commit()
+        bill_id = c.lastrowid
+        conn.close()
+
+        return jsonify({"message": "Bill uploaded successfully", "bill_id": bill_id}), 200
+
+    except Exception as e:
+        logger.error(f"Server error: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+@app.route('/add_manual_bill', methods=['POST'])
+def add_manual_bill():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+
+        bill_type = data.get('bill_type', 'other').lower()
+        amount = data.get('amount')
+        bill_date = data.get('bill_date')
+        user_id = data.get('user_id', 1)  # Default to 1 for demo
+
+        # Validate inputs
+        try:
+            amount = float(amount)
+            if amount <= 0:
+                return jsonify({"error": "Amount must be a positive number"}), 400
+        except (ValueError, TypeError):
+            return jsonify({"error": "Invalid amount"}), 400
+
+        if not bill_date:
+            bill_date = datetime.now().strftime('%Y-%m-%d')
+        else:
+            try:
+                datetime.strptime(bill_date, '%Y-%m-%d')
+            except ValueError:
+                return jsonify({"error": "Invalid date format. Use YYYY-MM-DD."}), 400
+
+        # Store in SQLite
+        conn = sqlite3.connect('users.db')
+        c = conn.cursor()
+        c.execute('''
+            INSERT INTO bills (user_id, bill_type, amount, bill_date, file_path)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (user_id, bill_type, amount, bill_date, None))
+        conn.commit()
+        bill_id = c.lastrowid
+        conn.close()
+
+        return jsonify({"message": "Manual bill added successfully", "bill_id": bill_id}), 200
+
+    except Exception as e:
+        logger.error(f"Server error: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+@app.route('/analyze_bills', methods=['POST'])
+def analyze_bills():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+
+        bill_type = data.get('bill_type', 'all').lower()
+        user_id = data.get('user_id', 1)  # Default to 1 for demo
+
+        # Fetch bills from SQLite
+        conn = sqlite3.connect('users.db')
+        c = conn.cursor()
+
+        if bill_type == 'all':
+            # Fetch all bills for the user
+            c.execute('''
+                SELECT bill_type, amount, bill_date
+                FROM bills
+                WHERE user_id = ?
+                ORDER BY bill_date ASC
+            ''', (user_id,))
+        else:
+            # Fetch bills for the specified type
+            c.execute('''
+                SELECT bill_type, amount, bill_date
+                FROM bills
+                WHERE user_id = ? AND LOWER(bill_type) = ?
+                ORDER BY bill_date ASC
+            ''', (user_id, bill_type))
+        bills = c.fetchall()
+
+        # Fetch all bills for category-wise analysis
+        c.execute('''
+            SELECT bill_type, amount
+            FROM bills
+            WHERE user_id = ?
+            GROUP BY bill_type
+        ''', (user_id,))
+        all_bills = c.fetchall()
+        conn.close()
+
+        if not bills:
+            return jsonify({"error": "No bills found"}), 404
+
+        # Group bills by bill_type for analysis
+        bills_by_type = {}
+        for bill in bills:
+            bt, amount, bill_date = bill
+            if bt not in bills_by_type:
+                bills_by_type[bt] = []
+            bills_by_type[bt].append((amount, bill_date))
+
+        # Analyze each bill type
+        analysis_by_type = {}
+        for bt, bill_data in bills_by_type.items():
+            amounts = [data[0] for data in bill_data]
+            dates = [datetime.strptime(data[1], '%Y-%m-%d') for data in bill_data]
+
+            # Statistical analysis
+            monthly_avg = np.mean(amounts) if amounts else 0
+            peak_months = []
+            monthly_sums = {}
+            if dates and amounts:
+                for date, amount in zip(dates, amounts):
+                    month_key = date.strftime('%Y-%m')
+                    monthly_sums[month_key] = monthly_sums.get(month_key, 0) + amount
+                sorted_months = sorted(monthly_sums.items(), key=lambda x: x[1], reverse=True)[:3]
+                peak_months = [f"{month} (₹{amount:.2f})" for month, amount in sorted_months]
+
+            # Future bill prediction (weighted moving average)
+            future_prediction = monthly_avg
+            if len(amounts) > 3:
+                weights = np.array([0.2, 0.3, 0.5])
+                recent_amounts = amounts[-3:]
+                future_prediction = np.average(recent_amounts, weights=weights) * 1.05
+
+            # Savings tips
+            savings_tips = []
+            if bt == 'electricity' and monthly_avg > 1000:
+                savings_tips.append("Your electricity bills are high. Use LED bulbs or solar lanterns to reduce costs.")
+            elif bt == 'water' and max(amounts) > np.mean(amounts) * 2:
+                savings_tips.append("Unusually high water bill detected. Check for leaks or use rainwater harvesting.")
+            else:
+                savings_tips.append(f"Track your {bt} bills regularly to identify saving opportunities.")
+
+            analysis_by_type[bt] = {
+                "monthly_average": round(monthly_avg, 2),
+                "peak_months": peak_months,
+                "future_prediction": round(future_prediction, 2),
+                "savings_tips": savings_tips,
+                "total_bills": len(amounts),
+                "trend": {
+                    "labels": [date.strftime('%Y-%m') for date in dates],
+                    "amounts": amounts
+                }
+            }
+
+        # Category-wise spending for pie chart
+        category_sums = {bill_type: sum(amount for bt, amount in all_bills if bt == bill_type) for bill_type, _ in all_bills}
+        category_labels = list(category_sums.keys())
+        category_values = list(category_sums.values())
+
+        # Prepare graph data
+        graph_data = {
+            "category": {
+                "labels": category_labels,
+                "amounts": category_values
+            }
+        }
+
+        analysis = {
+            "by_type": analysis_by_type,
+            "graph_data": graph_data,
+            "total_bills": len(bills)
+        }
+
+        return jsonify({"analysis": analysis}), 200
+
+    except Exception as e:
+        logger.error(f"Server error: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 # Sign Up and Login Routes
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -951,11 +1218,12 @@ def login():
         try:
             conn = sqlite3.connect('users.db')
             c = conn.cursor()
-            c.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password))
+            c.execute('SELECT id FROM users WHERE username = ? AND password = ?', (username, password))
             user = c.fetchone()
             conn.close()
 
             if user:
+                session['user_id'] = user[0]
                 flash('Login successful!', 'success')
                 return redirect(url_for('index'))
             else:

@@ -1,0 +1,668 @@
+{% extends "base.html" %}
+
+{% block title %}
+<span data-translate="expense_tracker_title">Vittam.ai - Personal Expense Tracker</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(rgba(30, 95, 116, 0.8), rgba(30, 95, 116, 0.9)), url('https://source.unsplash.com/random/1200x800/?village,india');
+        background-size: cover;
+        background-position: center;
+        color: white;
+        padding: 4rem 0;
+        margin-bottom: 3rem;
+    }
+
+    .upload-form, .manual-entry-form, .analysis-section {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+    }
+
+    .info-box {
+        background-color: var(--light-color);
+        border-left: 4px solid var(--accent-color);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border-radius: 0.25rem;
+    }
+
+    .stats-card {
+        background-color: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .chart-container {
+        position: relative;
+        margin: 2rem 0;
+        max-width: 100%;
+        height: 400px;
+    }
+
+    .loading-container, .error-message, .no-results {
+        text-align: center;
+        padding: 2rem;
+        display: none;
+    }
+
+    .error-message {
+        color: #d9534f;
+    }
+
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+        color: var(--primary-color);
+    }
+
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 2rem 0;
+        }
+
+        .upload-form, .manual-entry-form, .analysis-section {
+            padding: 1rem;
+        }
+
+        .chart-container {
+            height: 300px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold" data-translate="expense_tracker_title">Personal Expense Tracker</h1>
+        <p class="lead" data-translate="expense_tracker_subtitle">Track and analyze your household bills to manage your expenses smartly</p>
+    </div>
+</section>
+
+<!-- Main Content -->
+<div class="container mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Info Box -->
+            <div class="info-box">
+                <h5 class="mb-2" data-translate="why_use_tracker">Why use our Expense Tracker?</h5>
+                <p class="mb-0" data-translate="tracker_info">Our Expense Tracker helps rural households manage bills like electricity, water, and insurance. Upload your bills to see spending patterns, predict future expenses, and find ways to save money. It’s simple, secure, and designed for you.</p>
+            </div>
+
+            <!-- Upload Form -->
+            <div class="upload-form">
+                <h3 class="text-center mb-4" data-translate="upload_bill">Upload Your Bill</h3>
+                <form id="billUploadForm" enctype="multipart/form-data">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="bill_type" class="form-label" data-translate="bill_type">Bill Type</label>
+                            <select class="form-select" id="bill_type" required>
+                                <option value="electricity" data-translate="electricity">Electricity</option>
+                                <option value="water" data-translate="water">Water</option>
+                                <option value="wifi" data-translate="wifi">Wi-Fi</option>
+                                <option value="tv" data-translate="tv">TV</option>
+                                <option value="insurance" data-translate="insurance">Insurance</option>
+                                <option value="other" data-translate="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="bill_file" class="form-label" data-translate="bill_file">Upload Bill (PDF/Image)</label>
+                            <input type="file" class="form-control" id="bill_file" accept=".pdf,.jpg,.jpeg,.png" required>
+                        </div>
+                        <div class="col-12 text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg px-5" data-translate="upload">Upload</button>
+                        </div>
+                    </div>
+                </form>
+                <div id="uploadLoading" class="loading-container">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3" data-translate="uploading_bill">Uploading your bill...</p>
+                </div>
+                <div id="uploadError" class="error-message"></div>
+                <div id="uploadSuccess" class="text-success text-center" style="display: none;"></div>
+            </div>
+
+            <!-- Manual Bill Entry Form -->
+            <div class="manual-entry-form">
+                <h3 class="text-center mb-4" data-translate="manual_bill_entry">Add Bill Manually</h3>
+                <form id="manualBillForm">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="manual_bill_type" class="form-label" data-translate="bill_type">Bill Type</label>
+                            <select class="form-select" id="manual_bill_type" required>
+                                <option value="electricity" data-translate="electricity">Electricity</option>
+                                <option value="water" data-translate="water">Water</option>
+                                <option value="wifi" data-translate="wifi">Wi-Fi</option>
+                                <option value="tv" data-translate="tv">TV</option>
+                                <option value="insurance" data-translate="insurance">Insurance</option>
+                                <option value="other" data-translate="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="manual_amount" class="form-label" data-translate="bill_amount">Amount (₹)</label>
+                            <input type="number" class="form-control" id="manual_amount" step="0.01" min="0" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="manual_bill_date" class="form-label" data-translate="bill_date">Bill Date</label>
+                            <input type="date" class="form-control" id="manual_bill_date" required>
+                        </div>
+                        <div class="col-12 text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg px-5" data-translate="submit_manual_bill">Submit</button>
+                        </div>
+                    </div>
+                </form>
+                <div id="manualLoading" class="loading-container">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3" data-translate="submitting_bill">Submitting your bill...</p>
+                </div>
+                <div id="manualError" class="error-message"></div>
+                <div id="manualSuccess" class="text-success text-center" style="display: none;"></div>
+            </div>
+
+            <!-- Analysis Section -->
+            <div class="analysis-section">
+                <h3 class="text-center mb-4" data-translate="analyze_bills">Analyze Your Bills</h3>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label for="analysis_bill_type" class="form-label" data-translate="bill_type">Select Bill Type</label>
+                        <select class="form-select" id="analysis_bill_type">
+                            <option value="electricity" data-translate="electricity">Electricity</option>
+                            <option value="water" data-translate="water">Water</option>
+                            <option value="wifi" data-translate="wifi">Wi-Fi</option>
+                            <option value="tv" data-translate="tv">TV</option>
+                            <option value="insurance" data-translate="insurance">Insurance</option>
+                            <option value="other" data-translate="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <button id="analyzeButton" class="btn btn-primary btn-lg w-100" data-translate="analyze">Analyze</button>
+                    </div>
+                </div>
+                <div id="analysisLoading" class="loading-container">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3" data-translate="analyzing_bills">Analyzing your bills...</p>
+                </div>
+                <div id="analysisError" class="error-message"></div>
+                <div id="noResults" class="no-results">
+                    <i class="fas fa-search fa-3x mb-3 text-muted"></i>
+                    <h4 data-translate="no_bills_found">No bills found for this type</h4>
+                    <p data-translate="upload_bills">Please upload bills to see analysis.</p>
+                </div>
+                <div id="analysisResults" style="display: none;">
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <div class="stats-card">
+                                <h5 data-translate="monthly_average">Monthly Average</h5>
+                                <p id="monthlyAverage" class="fs-4 fw-bold"></p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stats-card">
+                                <h5 data-translate="future_prediction">Next Month’s Prediction</h5>
+                                <p id="futurePrediction" class="fs-4 fw-bold"></p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stats-card">
+                                <h5 data-translate="total_bills">Total Bills</h5>
+                                <p id="totalBills" class="fs-4 fw-bold"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stats-card">
+                        <h5 data-translate="peak_months">Peak Consumption Months</h5>
+                        <ul id="peakMonths" class="list-unstyled"></ul>
+                    </div>
+                    <div class="stats-card">
+                        <h5 data-translate="savings_tips">Savings Tips</h5>
+                        <ul id="savingsTips" class="list-unstyled"></ul>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="expenditureTrendChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="monthlyComparisonChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="categoryPieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+    // Translation additions for expense tracker and manual entry
+    translations.en = {
+        ...translations.en,
+        expense_tracker_title: "Personal Expense Tracker",
+        expense_tracker_subtitle: "Track and analyze your household bills to manage your expenses smartly",
+        why_use_tracker: "Why use our Expense Tracker?",
+        tracker_info: "Our Expense Tracker helps rural households manage bills like electricity, water, and insurance. Upload your bills to see spending patterns, predict future expenses, and find ways to save money. It’s simple, secure, and designed for you.",
+        upload_bill: "Upload Your Bill",
+        bill_type: "Bill Type",
+        bill_file: "Upload Bill (PDF/Image)",
+        electricity: "Electricity",
+        water: "Water",
+        wifi: "Wi-Fi",
+        tv: "TV",
+        insurance: "Insurance",
+        other: "Other",
+        upload: "Upload",
+        uploading_bill: "Uploading your bill...",
+        manual_bill_entry: "Add Bill Manually",
+        bill_amount: "Amount (₹)",
+        bill_date: "Bill Date",
+        submit_manual_bill: "Submit",
+        submitting_bill: "Submitting your bill...",
+        analyze_bills: "Analyze Your Bills",
+        analyze: "Analyze",
+        analyzing_bills: "Analyzing your bills...",
+        no_bills_found: "No bills found for this type",
+        upload_bills: "Please upload bills to see analysis.",
+        monthly_average: "Monthly Average",
+        future_prediction: "Next Month’s Prediction",
+        total_bills: "Total Bills",
+        peak_months: "Peak Consumption Months",
+        savings_tips: "Savings Tips",
+        error_invalid_file: "Please select a valid PDF or image file.",
+        error_upload_failed: "Failed to upload bill. Please try again.",
+        bill_uploaded: "Bill uploaded successfully!",
+        error_manual_submission_failed: "Failed to submit bill. Please try again.",
+        manual_bill_submitted: "Bill submitted successfully!",
+        error_invalid_amount: "Please enter a valid positive amount.",
+        error_invalid_date: "Please select a valid date.",
+        error_analysis_failed: "Failed to analyze bills. Please try again."
+    };
+
+    translations.hi = {
+        ...translations.hi,
+        expense_tracker_title: "व्यक्तिगत व्यय ट्रैकर",
+        expense_tracker_subtitle: "अपने घरेलू बिलों को ट्रैक और विश्लेषण करें ताकि अपने खर्चों को स्मार्ट तरीके से प्रबंधित कर सकें",
+        why_use_tracker: "हमारा व्यय ट्रैकर क्यों उपयोग करें?",
+        tracker_info: "हमारा व्यय ट्रैकर ग्रामीण परिवारों को बिजली, पानी और बीमा जैसे बिलों को प्रबंधित करने में मदद करता है। अपने बिल अपलोड करें ताकि खर्च के पैटर्न देख सकें, भविष्य के खर्चों की भविष्यवाणी कर सकें और पैसे बचाने के तरीके खोज सकें। यह सरल, सुरक्षित और आपके लिए डिज़ाइन किया गया है।",
+        upload_bill: "अपना बिल अपलोड करें",
+        bill_type: "बिल का प्रकार",
+        bill_file: "बिल अपलोड करें (PDF/छवि)",
+        electricity: "बिजली",
+        water: "पानी",
+        wifi: "वायरलेस इंटरनेट",
+        tv: "टीवी",
+        insurance: "बीमा",
+        other: "अन्य",
+        upload: "अपलोड करें",
+        uploading_bill: "आपका बिल अपलोड हो रहा है...",
+        manual_bill_entry: "बिल मैन्युअल रूप से जोड़ें",
+        bill_amount: "राशि (₹)",
+        bill_date: "बिल की तारीख",
+        submit_manual_bill: "जमा करें",
+        submitting_bill: "आपका बिल जमा हो रहा है...",
+        analyze_bills: "अपने बिलों का विश्लेषण करें",
+        analyze: "विश्लेषण करें",
+        analyzing_bills: "आपके बिलों का विश्लेषण हो रहा है...",
+        no_bills_found: "इस प्रकार के लिए कोई बिल नहीं मिला",
+        upload_bills: "विश्लेषण देखने के लिए कृपया बिल अपलोड करें।",
+        monthly_average: "मासिक औसत",
+        future_prediction: "अगले महीने की भविष्यवाणी",
+        total_bills: "कुल बिल",
+        peak_months: "उच्च खपत वाले महीने",
+        savings_tips: "बचत के सुझाव",
+        error_invalid_file: "कृपया एक मान्य PDF या छवि फ़ाइल चुनें।",
+        error_upload_failed: "बिल अपलोड करने में विफल। कृपया पुनः प्रयास करें।",
+        bill_uploaded: "बिल सफलतापूर्वक अपलोड हो गया!",
+        error_manual_submission_failed: "बिल जमा करने में विफल। कृपया पुनः प्रयास करें।",
+        manual_bill_submitted: "बिल सफलतापूर्वक जमा हो गया!",
+        error_invalid_amount: "कृपया एक मान्य धनात्मक राशि दर्ज करें।",
+        error_invalid_date: "कृपया एक मान्य तारीख चुनें।",
+        error_analysis_failed: "बिलों का विश्लेषण करने में विफल। कृपया पुनः प्रयास करें।"
+    };
+
+    translations.kn = {
+        ...translations.kn,
+        expense_tracker_title: "ವೈಯಕ್ತಿಕ ವೆಚ್ಚ ಟ್ರ್ಯಾಕರ್",
+        expense_tracker_subtitle: "ನಿಮ್ಮ ಮನೆಯ ಬಿಲ್‌ಗಳನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಿ ಮತ್ತು ವಿಶ್ಲೇಷಿಸಿ, ಖರ್ಚುಗಳನ್ನು ಸ್ಮಾರ್ಟ್ ಆಗಿ ನಿರ್ವಹಿಸಿ",
+        why_use_tracker: "ನಮ್ಮ ವೆಚ್ಚ ಟ್ರ್ಯಾಕರ್ ಏಕೆ ಬಳಸಬೇಕು?",
+        tracker_info: "ನಮ್ಮ ವೆಚ್ಚ ಟ್ರ್ಯಾಕರ್ ಗ್ರಾಮೀಣ ಕುಟುಂಬಗಳಿಗೆ ಬಿಜ್ಲಿ, ನೀರು ಮತ್ತು ವಿಮೆಯಂತಹ ಬಿಲ್‌ಗಳನ್ನು ನಿರ್ವಹಿಸಲು ಸಹಾಯ ಮಾಡುತ್ತದೆ. ನಿಮ್ಮ ಬಿಲ್‌ಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ, ಖರ್ಚಿನ ಮಾದರಿಗಳನ್ನು ನೋಡಿ, ಭವಿಷ್ಯದ ವೆಚ್ಚಗಳನ್ನು ಊಹಿಸಿ ಮತ್ತು ಹಣ ಉಳಿಸುವ ಮಾರ್ಗಗಳನ್ನು ಕಂಡುಕೊಳ್ಳಿ. ಇದು ಸರಳ, ಸುರಕ್ಷಿತ ಮತ್ತು ನಿಮಗಾಗಿ ವಿನ್ಯಾಸಗೊಳಿಸಲಾಗಿದೆ.",
+        upload_bill: "ನಿಮ್ಮ ಬಿಲ್ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
+        bill_type: "ಬಿಲ್ ಪ್ರಕಾರ",
+        bill_file: "ಬಿಲ್ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ (PDF/ಚಿತ್ರ)",
+        electricity: "ವಿದ್ಯುತ್",
+        water: "ನೀರು",
+        wifi: "ವೈ-ಫೈ",
+        tv: "ಟಿವಿ",
+        insurance: "ವಿಮೆ",
+        other: "ಇತರೆ",
+        upload: "ಅಪ್‌ಲೋಡ್",
+        uploading_bill: "ನಿಮ್ಮ ಬಿಲ್ ಅಪ್‌ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
+        manual_bill_entry: "ಬಿಲ್ ಅನ್ನು ಹಸ್ತಚಾಲಿತವಾಗಿ ಸೇರಿಸಿ",
+        bill_amount: "ಮೊತ್ತ (₹)",
+        bill_date: "ಬಿಲ್ ದಿನಾಂಕ",
+        submit_manual_bill: "ಸಲ್ಲಿಸಿ",
+        submitting_bill: "ನಿಮ್ಮ ಬಿಲ್ ಸಲ್ಲಿಸಲಾಗುತ್ತಿದೆ...",
+        analyze_bills: "ನಿಮ್ಮ ಬಿಲ್‌ಗಳನ್ನು ವಿಶ್ಲೇಷಿಸಿ",
+        analyze: "ವಿಶ್ಲೇಷಿಸಿ",
+        analyzing_bills: "ನಿಮ್ಮ ಬಿಲ್‌ಗಳನ್ನು ವಿಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ...",
+        no_bills_found: "ಈ ಪ್ರಕಾರಕ್ಕೆ ಯಾವುದೇ ಬಿಲ್‌ಗಳು ಕಂಡುಬಂದಿಲ್ಲ",
+        upload_bills: "ವಿಶ್ಲೇಷಣೆಯನ್ನು ನೋಡಲು ದಯವಿಟ್ಟು ಬಿಲ್‌ಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ.",
+        monthly_average: "ಮಾಸಿಕ ಸರಾಸರಿ",
+        future_prediction: "ಮುಂದಿನ ತಿಂಗಳ ಊಹೆ",
+        total_bills: "ಒಟ್ಟು ಬಿಲ್‌ಗಳು",
+        peak_months: "ಉನ್ನತ ಬಳಕೆಯ ತಿಂಗಳುಗಳು",
+        savings_tips: "ಉಳಿತಾಯ ಸಲಹೆಗಳು",
+        error_invalid_file: "ದಯವಿಟ್ಟು ಮಾನ್ಯವಾದ PDF ಅಥವಾ ಚಿತ್ರ ಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ.",
+        error_upload_failed: "ಬಿಲ್ ಅಪ್‌ಲೋಡ್ ಮಾಡಲು ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+        bill_uploaded: "ಬಿಲ್ ಯಶಸ್ವಿಯಾಗಿ ಅಪ್‌ಲೋಡ್ ಆಗಿದೆ!",
+        error_manual_submission_failed: "ಬಿಲ್ ಸಲ್ಲಿಸಲು ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+        manual_bill_submitted: "ಬಿಲ್ ಯಶಸ್ವಿಯಾಗಿ ಸಲ್ಲಿಸಲಾಗಿದೆ!",
+        error_invalid_amount: "ದಯವಿಟ್ಟು ಮಾನ್ಯವಾದ ಧನಾತ್ಮಕ ಮೊತ್ತವನ್ನು ನಮೂದಿಸಿ.",
+        error_invalid_date: "ದಯವಿಟ್ಟು ಮಾನ್ಯವಾದ ದಿನಾಂಕವನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
+        error_analysis_failed: "ಬಿಲ್‌ಗಳನ್ನು ವಿಶ್ಲೇಷಿಸಲು ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ."
+    };
+
+    // Chart.js instances
+    let expenditureChart, monthlyChart, pieChart;
+
+    // Handle bill upload and manual entry form submissions
+    document.addEventListener('DOMContentLoaded', () => {
+        const billUploadForm = document.getElementById('billUploadForm');
+        const manualBillForm = document.getElementById('manualBillForm');
+        const uploadLoading = document.getElementById('uploadLoading');
+        const uploadError = document.getElementById('uploadError');
+        const uploadSuccess = document.getElementById('uploadSuccess');
+        const manualLoading = document.getElementById('manualLoading');
+        const manualError = document.getElementById('manualError');
+        const manualSuccess = document.getElementById('manualSuccess');
+        const analyzeButton = document.getElementById('analyzeButton');
+        const analysisLoading = document.getElementById('analysisLoading');
+        const analysisError = document.getElementById('analysisError');
+        const noResults = document.getElementById('noResults');
+        const analysisResults = document.getElementById('analysisResults');
+        const currentLanguage = getCurrentLanguage();
+        updateContent(currentLanguage);
+
+        // Bill Upload Form Submission
+        billUploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const billType = document.getElementById('bill_type').value;
+            const billFile = document.getElementById('bill_file').files[0];
+
+            if (!billFile || !['application/pdf', 'image/jpeg', 'image/png'].includes(billFile.type)) {
+                uploadError.innerHTML = translations[currentLanguage].error_invalid_file;
+                uploadError.style.display = 'block';
+                uploadSuccess.style.display = 'none';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('bill_type', billType);
+            formData.append('file', billFile);
+
+            uploadLoading.style.display = 'block';
+            uploadError.style.display = 'none';
+            uploadSuccess.style.display = 'none';
+
+            try {
+                const response = await fetch('/upload_bill', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                uploadLoading.style.display = 'none';
+
+                if (data.error) {
+                    uploadError.innerHTML = translations[currentLanguage].error_upload_failed;
+                    uploadError.style.display = 'block';
+                } else {
+                    uploadSuccess.innerHTML = translations[currentLanguage].bill_uploaded;
+                    uploadSuccess.style.display = 'block';
+                    billUploadForm.reset();
+                }
+            } catch (error) {
+                uploadLoading.style.display = 'none';
+                uploadError.innerHTML = translations[currentLanguage].error_upload_failed;
+                uploadError.style.display = 'block';
+                console.error('Error:', error);
+            }
+        });
+
+        // Manual Bill Entry Form Submission
+        manualBillForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const billType = document.getElementById('manual_bill_type').value;
+            const amount = document.getElementById('manual_amount').value;
+            const billDate = document.getElementById('manual_bill_date').value;
+
+            // Validate amount
+            const parsedAmount = parseFloat(amount);
+            if (isNaN(parsedAmount) || parsedAmount <= 0) {
+                manualError.innerHTML = translations[currentLanguage].error_invalid_amount;
+                manualError.style.display = 'block';
+                manualSuccess.style.display = 'none';
+                return;
+            }
+
+            // Validate date
+            if (!billDate) {
+                manualError.innerHTML = translations[currentLanguage].error_invalid_date;
+                manualError.style.display = 'block';
+                manualSuccess.style.display = 'none';
+                return;
+            }
+
+            const data = {
+                bill_type: billType,
+                amount: parsedAmount,
+                bill_date: billDate
+            };
+
+            manualLoading.style.display = 'block';
+            manualError.style.display = 'none';
+            manualSuccess.style.display = 'none';
+
+            try {
+                const response = await fetch('/add_manual_bill', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+
+                manualLoading.style.display = 'none';
+
+                if (result.error) {
+                    manualError.innerHTML = translations[currentLanguage].error_manual_submission_failed;
+                    manualError.style.display = 'block';
+                } else {
+                    manualSuccess.innerHTML = translations[currentLanguage].manual_bill_submitted;
+                    manualSuccess.style.display = 'block';
+                    manualBillForm.reset();
+                }
+            } catch (error) {
+                manualLoading.style.display = 'none';
+                manualError.innerHTML = translations[currentLanguage].error_manual_submission_failed;
+                manualError.style.display = 'block';
+                console.error('Error:', error);
+            }
+        });
+
+        // Analyze Bills
+        analyzeButton.addEventListener('click', async () => {
+            const billType = document.getElementById('analysis_bill_type').value;
+
+            analysisLoading.style.display = 'block';
+            analysisError.style.display = 'none';
+            noResults.style.display = 'none';
+            analysisResults.style.display = 'none';
+
+            try {
+                const response = await fetch('/analyze_bills', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ bill_type: billType })
+                });
+                const data = await response.json();
+
+                analysisLoading.style.display = 'none';
+
+                if (data.error) {
+                    if (data.error.includes('No bills found')) {
+                        noResults.style.display = 'block';
+                    } else {
+                        analysisError.innerHTML = translations[currentLanguage].error_analysis_failed;
+                        analysisError.style.display = 'block';
+                    }
+                    return;
+                }
+
+                // Display analysis results
+                analysisResults.style.display = 'block';
+
+                const { analysis } = data;
+                document.getElementById('monthlyAverage').innerHTML = `₹${analysis.by_type[billType]?.monthly_average || 0}`;
+                document.getElementById('futurePrediction').innerHTML = `₹${analysis.by_type[billType]?.future_prediction || 0}`;
+                document.getElementById('totalBills').innerHTML = analysis.by_type[billType]?.total_bills || 0;
+
+                const peakMonthsList = document.getElementById('peakMonths');
+                const peakMonths = analysis.by_type[billType]?.peak_months || [];
+                peakMonthsList.innerHTML = peakMonths.length
+                    ? peakMonths.map(month => `<li>${month}</li>`).join('')
+                    : `<li>${translations[currentLanguage].no_peak_months || 'No peak months available.'}</li>`;
+
+                const savingsTipsList = document.getElementById('savingsTips');
+                const savingsTips = analysis.by_type[billType]?.savings_tips || [];
+                savingsTipsList.innerHTML = savingsTips.length
+                    ? savingsTips.map(tip => `<li>${tip}</li>`).join('')
+                    : `<li>${translations[currentLanguage].no_savings_tips || 'No savings tips available.'}</li>`;
+
+                // Destroy existing charts if they exist
+                if (expenditureChart) expenditureChart.destroy();
+                if (monthlyChart) monthlyChart.destroy();
+                if (pieChart) pieChart.destroy();
+
+                const trendData = analysis.by_type[billType]?.trend || { labels: [], amounts: [] };
+
+                // Expenditure Trend (Line Chart)
+                expenditureChart = new Chart(document.getElementById('expenditureTrendChart'), {
+                    type: 'line',
+                    data: {
+                        labels: trendData.labels,
+                        datasets: [{
+                            label: translations[currentLanguage].expenditure_trend || 'Expenditure Trend',
+                            data: trendData.amounts,
+                            borderColor: 'rgba(30, 95, 116, 1)',
+                            backgroundColor: 'rgba(30, 95, 116, 0.2)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: { display: true, text: 'Amount (₹)' }
+                            },
+                            x: {
+                                title: { display: true, text: 'Month' }
+                            }
+                        }
+                    }
+                });
+
+                // Monthly Comparison (Bar Chart)
+                monthlyChart = new Chart(document.getElementById('monthlyComparisonChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: trendData.labels,
+                        datasets: [{
+                            label: translations[currentLanguage].monthly_spending || 'Monthly Spending',
+                            data: trendData.amounts,
+                            backgroundColor: 'rgba(30, 95, 116, 0.8)',
+                            borderColor: 'rgba(30, 95, 116, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: { display: true, text: 'Amount (₹)' }
+                            },
+                            x: {
+                                title: { display: true, text: 'Month' }
+                            }
+                        }
+                    }
+                });
+
+                // Category Pie Chart
+                pieChart = new Chart(document.getElementById('categoryPieChart'), {
+                    type: 'pie',
+                    data: {
+                        labels: analysis.graph_data.category.labels,
+                        datasets: [{
+                            label: translations[currentLanguage].category_spending || 'Category Spending',
+                            data: analysis.graph_data.category.amounts,
+                            backgroundColor: [
+                                'rgba(30, 95, 116, 0.8)',
+                                'rgba(255, 99, 132, 0.8)',
+                                'rgba(54, 162, 235, 0.8)',
+                                'rgba(255, 206, 86, 0.8)',
+                                'rgba(75, 192, 192, 0.8)',
+                                'rgba(153, 102, 255, 0.8)'
+                            ],
+                            borderColor: [
+                                'rgba(30, 95, 116, 1)',
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+
+            } catch (error) {
+                analysisLoading.style.display = 'none';
+                analysisError.innerHTML = translations[currentLanguage].error_analysis_failed;
+                analysisError.style.display = 'block';
+                console.error('Error:', error);
+            }
+        });
+    });
+</script>
+{% endblock %}
