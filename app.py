@@ -149,23 +149,31 @@ def check_eligibility():
         except (ValueError, TypeError):
             return jsonify({"error": "Invalid numeric input"}), 400
 
-        # Manual basic validation
+        # Manual basic validation with relaxed criteria
         if not (18 <= age <= 65):
+            logger.info(f"Rejected: Age {age} not between 18 and 65")
             return jsonify({"status": "rejected", "reason": "Age must be between 18 and 65."}), 200
-        if monthly_income < 5000:
-            return jsonify({"status": "rejected", "reason": "Monthly income must be at least ₹5,000."}), 200
-        if not (1000 <= loan_amount <= 100000):
-            return jsonify({"status": "rejected", "reason": "Loan amount must be between ₹1,000 and ₹100,000."}), 200
-        if existing_loan_amount > 2 * monthly_income:
-            return jsonify({"status": "pending", "reason": "Existing loan amount exceeds 2x monthly income. Additional review required."}), 200
+        if monthly_income < 3000:
+            logger.info(f"Rejected: Monthly income {monthly_income} below ₹3,000")
+            return jsonify({"status": "rejected", "reason": "Monthly income must be at least ₹3,000."}), 200
+        if not (500 <= loan_amount <= 150000):
+            logger.info(f"Rejected: Loan amount {loan_amount} not between ₹500 and ₹150,000")
+            return jsonify({"status": "rejected", "reason": "Loan amount must be between ₹500 and ₹150,000."}), 200
+        if loan_amount <= 10000:
+            logger.info(f"Approved: Loan amount {loan_amount} ≤ ₹10,000")
+            return jsonify({"status": "approved", "reason": "Loan amount is ₹10,000 or less, automatically approved."}), 200
+        if existing_loan_amount > 3 * monthly_income:
+            logger.info(f"Pending: Existing loan amount {existing_loan_amount} exceeds 3x monthly income {monthly_income}")
+            return jsonify({"status": "pending", "reason": "Existing loan amount exceeds 3x monthly income. Additional review required."}), 200
         if data['defaultHistory'] == 'yes':
+            logger.info(f"Rejected: Default history detected")
             return jsonify({"status": "rejected", "reason": "History of loan default detected."}), 200
 
         prompt_template = PromptTemplate(
             input_variables=["age", "monthlyIncome", "existingLoans", "existingLoanAmount", 
                             "defaultHistory", "loanAmount", "loanPurpose", "loanTenure"],
             template=""" 
-            Evaluate the eligibility of an applicant for a microloan based on the following information:
+            Evaluate the eligibility of an applicant for a microloan tailored for rural Indian applicants based on the following information:
             - Age: {age} years
             - Monthly Income: ₹{monthlyIncome}
             - Existing Loans: {existingLoans}
@@ -176,12 +184,13 @@ def check_eligibility():
             - Loan Tenure: {loanTenure} months
 
             Eligibility criteria:
-            - Monthly income should be at least ₹5,000.
-            - No recent loan defaults.
-            - Loan amount should be between ₹1,000 and ₹100,000.
-            - Age should be between 18 and 65.
-            - Existing loan amount should not exceed 2x monthly income.
-            - Loan purpose should be reasonable (e.g., agriculture, business, education).
+            - Monthly income should be at least ₹3,000 to support basic rural livelihoods.
+            - No recent loan defaults to ensure repayment reliability.
+            - Loan amount should be between ₹500 and ₹150,000 to cover small to medium rural needs.
+            - Age should be between 18 and 65 to align with working-age applicants.
+            - Existing loan amount should not exceed 3x monthly income to ensure repayment capacity.
+            - Loan purpose should be reasonable for rural contexts (e.g., agriculture, small business, education, emergencies).
+            - Automatically approve if loan amount is ≤ ₹10,000, regardless of other criteria, to support small-scale rural needs.
 
             Return a JSON object with:
             - status: "approved", "pending", or "rejected"
@@ -190,7 +199,7 @@ def check_eligibility():
             Example output:
             {{
                 "status": "approved",
-                "reason": "Applicant meets all eligibility criteria."
+                "reason": "Applicant meets all eligibility criteria for a small rural loan."
             }}
             """
         )
@@ -206,19 +215,31 @@ def check_eligibility():
             loanTenure=loan_tenure
         )
 
-        response = llm.invoke(prompt)
-
         try:
-            result = json.loads(response.content)
-        except:
+            logger.debug(f"Sending eligibility prompt to Gemini: {prompt[:200]}...")
+            response = llm.invoke(prompt)
+            logger.debug(f"Gemini response: {response.content}")
+
+            try:
+                result = json.loads(response.content)
+                logger.info(f"Gemini result: {result}")
+            except json.JSONDecodeError:
+                logger.warning("Invalid JSON response from Gemini")
+                result = {
+                    "status": "pending",
+                    "reason": "Unable to process eligibility. Please contact support."
+                }
+        except Exception as e:
+            logger.error(f"Gemini query error: {str(e)}")
             result = {
                 "status": "pending",
-                "reason": "Unable to process eligibility. Please contact support."
+                "reason": "Unable to process eligibility due to server error. Please try again."
             }
 
         return jsonify(result), 200
 
     except Exception as e:
+        logger.error(f"Server error: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 @app.route('/find_banks', methods=['POST'])
