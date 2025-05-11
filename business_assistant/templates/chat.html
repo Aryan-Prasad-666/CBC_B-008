@@ -1,0 +1,861 @@
+{% extends "base.html" %}
+
+{% block title %}Vittam.ai - Chat{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<style>
+    .sidebar {
+        width: 320px;
+        background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+        padding: 20px;
+        overflow-y: auto;
+        border-right: 2px solid #2E7D32;
+        box-shadow: 5px 0 10px rgba(0, 0, 0, 0.1);
+        border-radius: 10px 0 0 10px;
+        transition: all 0.3s ease;
+    }
+
+    .sidebar h3 {
+        margin-top: 20px;
+        color: #4CAF50;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-bottom: 2px solid #2E7D32;
+        padding-bottom: 8px;
+        position: relative;
+    }
+
+    .sidebar h3::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 50px;
+        height: 2px;
+        background: #4CAF50;
+    }
+
+    .help-button {
+        margin: 8px 0;
+        padding: 12px;
+        background: linear-gradient(90deg, #4CAF50, #66BB6A);
+        color: #FFFFFF;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        width: 100%;
+        text-align: left;
+        font-family: 'Montserrat', sans-serif;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .help-button:hover {
+        background: linear-gradient(90deg, #388E3C, #4CAF50);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .help-button:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .help-button::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: -100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: all 0.5s ease;
+    }
+
+    .help-button:hover::after {
+        left: 100%;
+    }
+
+    .help-tooltip {
+        display: none;
+        position: absolute;
+        background: #E8F5E9;
+        border: 2px solid #2E7D32;
+        border-radius: 8px;
+        padding: 15px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        z-index: 10;
+        width: 250px;
+        top: 0;
+        left: 330px;
+        font-family: 'Montserrat', sans-serif;
+        color: #2D2D2D;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .chatbox {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+        padding: 20px;
+        border-radius: 0 10px 10px 0;
+        box-shadow: -5px 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .chat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #2E7D32;
+    }
+
+    .chat-header h2 {
+        color: #4CAF50;
+        font-family: 'Montserrat', sans-serif;
+        margin: 0;
+        font-weight: 700;
+    }
+
+    .chat-display {
+        flex: 1;
+        background: #DCEDC8;
+        border-radius: 10px;
+        padding: 25px;
+        overflow-y: auto;
+        max-height: calc(100vh - 230px);
+        margin-bottom: 0;
+        border: 1px solid #2E7D32;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        scroll-behavior: smooth;
+        box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .chat-display .message {
+        max-width: 80%;
+        padding: 20px 25px;
+        border-radius: 25px;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 16px;
+        color: #2D2D2D;
+        line-height: 1.5;
+        position: relative;
+        box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+        animation: messageAppear 0.5s ease;
+    }
+
+    @keyframes messageAppear {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .chat-display .user-message {
+        background: linear-gradient(135deg, #C5E1A5, #A5D6A7);
+        align-self: flex-end;
+        margin-right: 20px;
+        border-bottom-right-radius: 5px;
+    }
+
+    .chat-display .bot-message {
+        background: linear-gradient(135deg, #A5D6A7, #81C784);
+        align-self: flex-start;
+        margin-left: 20px;
+        border-bottom-left-radius: 5px;
+    }
+
+    .chat-display .bot-message.table-message {
+        width: 95%;
+        padding: 15px;
+    }
+
+    .chat-display .user-message::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        right: -10px;
+        width: 20px;
+        height: 20px;
+        background: linear-gradient(135deg, transparent 50%, #A5D6A7 50%);
+        border-bottom-left-radius: 25px;
+        transform: rotate(90deg);
+    }
+
+    .chat-display .bot-message::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: -10px;
+        width: 20px;
+        height: 20px;
+        background: linear-gradient(225deg, transparent 50%, #A5D6A7 50%);
+        border-bottom-right-radius: 25px;
+        transform: rotate(270deg);
+    }
+
+    .timestamp {
+        font-size: 11px;
+        color: #4CAF50;
+        opacity: 0.7;
+        margin-top: 5px;
+        text-align: right;
+    }
+
+    .chat-input {
+        display: flex;
+        gap: 15px;
+        margin-top: 15px;
+        position: relative;
+    }
+
+    .chat-input input[type="text"] {
+        flex: 1;
+        padding: 15px 20px;
+        border-radius: 25px;
+        border: 2px solid #2E7D32;
+        background: #E8F5E9;
+        color: #2D2D2D;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 16px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .chat-input input[type="text"]:focus {
+        outline: none;
+        background: #DCEDC8;
+        border-color: #4CAF50;
+        box-shadow: 0 2px 15px rgba(76, 175, 80, 0.2);
+    }
+
+    .chat-input button {
+        padding: 15px 30px;
+        border: none;
+        border-radius: 25px;
+        background: linear-gradient(90deg, #4CAF50, #66BB6A);
+        color: #FFFFFF;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: 'Montserrat', sans-serif;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .chat-input button:hover {
+        background: linear-gradient(90deg, #388E3C, #4CAF50);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .chat-input button:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .mic-btn {
+        padding: 15px;
+        background: linear-gradient(135deg, #4CAF50, #2E7D32);
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 18px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+
+    .mic-btn:hover:not(.disabled) {
+        background: linear-gradient(135deg, #388E3C, #66BB6A);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .mic-btn.listening {
+        animation: pulse 1.5s infinite;
+        background: linear-gradient(135deg, #2E7D32, #388E3C);
+    }
+
+    .mic-btn.disabled {
+        background: #999;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); box-shadow: 0 0 20px rgba(46, 125, 50, 0.5); }
+        100% { transform: scale(1); }
+    }
+
+    #error {
+        display: none;
+        background: linear-gradient(90deg, #2E7D32, #388E3C);
+        color: #FFFFFF;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        font-family: 'Montserrat', sans-serif;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        text-align: center;
+        animation: shake 0.5s;
+    }
+
+    @keyframes shake {
+        0% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        50% { transform: translateX(5px); }
+        75% { transform: translateX(-5px); }
+        100% { transform: translateX(0); }
+    }
+
+    .query-suggestions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 15px;
+    }
+
+    .suggestion-chip {
+        background: #E8F5E9;
+        border: 1px solid #2E7D32;
+        border-radius: 20px;
+        padding: 8px 15px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .suggestion-chip:hover {
+        background: #C5E1A5;
+        transform: translateY(-2px);
+    }
+
+    .welcome-message {
+        text-align: center;
+        padding: 30px;
+        background: rgba(76, 175, 80, 0.1);
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+
+    .welcome-message h3 {
+        color: #4CAF50;
+        margin-bottom: 10px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        overflow: hidden;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        table-layout: auto;
+    }
+
+    th {
+        border: 1px solid #2E7D32;
+        padding: 15px;
+        background: linear-gradient(90deg, #C8E6C9, #A5D6A7);
+        color: #2D2D2D;
+        font-weight: 700;
+        text-align: left;
+        font-size: 14px;
+        min-width: 100px;
+    }
+
+    td {
+        border: 1px solid #2E7D32;
+        padding: 15px;
+        background: #E8F5E9;
+        font-size: 14px;
+        color: #2D2D2D;
+        word-wrap: break-word;
+        max-width: 300px;
+    }
+
+    tr:nth-child(even) td {
+        background: #DCEDC8;
+    }
+
+    tr:hover td {
+        background: #C8E6C9;
+    }
+
+    @media (max-width: 991px) {
+        .main {
+            flex-direction: column;
+        }
+        
+        .sidebar {
+            width: 100%;
+            border-radius: 10px 10px 0 0;
+            max-height: 300px;
+        }
+        
+        .chatbox {
+            border-radius: 0 0 10px 10px;
+        }
+
+        table {
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        th, td {
+            min-width: 120px;
+        }
+    }
+
+    #date-picker {
+        padding: 10px;
+        border-radius: 8px;
+        border: 2px solid #2E7D32;
+        background: #E8F5E9;
+        color: #2D2D2D;
+        font-family: 'Montserrat', sans-serif;
+        margin-top: 10px;
+        width: 100%;
+    }
+
+    .prompt-indicator {
+        position: absolute;
+        right: 10px;
+        font-size: 12px;
+        background: rgba(46, 125, 50, 0.2);
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+</style>
+
+<div class="sidebar">
+    <h3>Customer Queries</h3>
+    <div class="help-button-container">
+        <button class="help-button" data-prompt="To see all your customers, try asking: 'Show me all customers' or 'Display customer list'">
+            Display Customers
+            <span class="prompt-indicator">?</span>
+        </button>
+        <button class="help-button" data-prompt="To add a new customer, try asking: 'Add a new customer named John Smith with phone 555-1234' or 'Create customer Jane Doe with contact 555-5678'">
+            Add Customer
+            <span class="prompt-indicator">?</span>
+        </button>
+        <button class="help-button" data-prompt="To view customer details, try asking: 'Show me details for customer ID 5' or 'Display information about customer John Smith'">
+            Display Customer Details
+            <span class="prompt-indicator">?</span>
+        </button>
+        <button class="help-button" data-prompt="To update a phone number, try asking: 'Update phone number for customer ID 3 to 555-9876' or 'Change John Smith's phone to 555-8765'">
+            Update Phone
+            <span class="prompt-indicator">?</span>
+        </button>
+        <button class="help-button" data-prompt="To remove a customer, try asking: 'Delete customer ID 7' or 'Remove customer Jane Doe from database'">
+            Delete Customer
+            <span class="prompt-indicator">?</span>
+        </button>
+    </div>
+
+    <h3>Bill Management</h3>
+    <div class="help-button-container">
+        <button class="help-button" data-prompt="To view all bills, try asking: 'Show me all bills' or 'Display recent bills'">
+            Display Bills
+            <span class="prompt-indicator">?</span>
+        </button>
+        <button class="help-button" data-prompt="To create a new bill, try asking: 'Create a new bill for customer ID 3' or 'Add bill for John Smith'">
+            Add a New Bill
+            <span class="prompt-indicator">?</span>
+        </button>
+        <button class="help-button" data-prompt="To remove a bill, try asking: 'Delete bill ID 12' or 'Remove bill #15 from system'">
+            Delete Bill
+            <span class="prompt-indicator">?</span>
+        </button>
+        <button class="help-button" data-prompt="To see older bills, try asking: 'Show me bills from January 2023' or 'Display bills older than 3 months'">
+            View Old Bills
+            <span class="prompt-indicator">?</span>
+        </button>
+        <button class="help-button" data-prompt="To update payment status, try asking: 'Mark bill ID 9 as paid' or 'Update payment status of bill #14 to completed'">
+            Update Payment Status
+            <span class="prompt-indicator">?</span>
+        </button>
+    </div>
+
+    <h3>Stock Management</h3>
+    <div class="help-button-container">
+        <button class="help-button" data-prompt="To add new inventory, try asking: 'Add new product Ceramic Mug with price $12.99 and quantity 50' or 'Create new stock item Notebook with 100 units at $5.99 each'">
+            Add New Stock
+            <span class="prompt-indicator">?</span>
+        </button>
+        <button class="help-button" data-prompt="To view inventory, try asking: 'Show me all stock items' or 'Display current inventory'">
+            Display Stocks
+            <span class="prompt-indicator">?</span>
+        </button>
+        <button class="help-button" data-prompt="To remove inventory, try asking: 'Delete stock item ID 8' or 'Remove Ceramic Mug from inventory'">
+            Delete Stock
+            <span class="prompt-indicator">?</span>
+        </button>
+        <button class="help-button" data-prompt="To update pricing, try asking: 'Change price of item ID 5 to $15.99' or 'Update Notebook price to $6.50'">
+            Change Price
+            <span class="prompt-indicator">?</span>
+        </button>
+        <button class="help-button" data-prompt="To increase inventory, try asking: 'Add 25 units to stock item ID 4' or 'Increase Ceramic Mug quantity by 30'">
+            Add Quantity
+            <span class="prompt-indicator">?</span>
+        </button>
+    </div>
+
+    <h3>Bill Items</h3>
+    <div class="help-button-container">
+        <button class="help-button" data-prompt="To add an item to a bill, try asking: 'Add 2 Ceramic Mugs to bill ID 7' or 'Include 5 Notebooks in bill #12'">
+            Add Bill Item
+            <span class="prompt-indicator">?</span>
+        </button>
+        <button class="help-button" data-prompt="To see recent bill items, try asking: 'Show latest bill items' or 'Display recent bill entries'">
+            View Latest Bill Items
+            <span class="prompt-indicator">?</span>
+        </button>
+        <button class="help-button" data-prompt="To check items in a specific bill, try asking: 'Show items in bill ID 9' or 'What items are in bill #15?'">
+            View Bill Items of a Bill
+            <span class="prompt-indicator">?</span>
+        </button>
+        <button class="help-button" data-prompt="To remove an item from a bill, try asking: 'Delete item ID 23 from bill' or 'Remove Ceramic Mug from bill #8'">
+            Delete Bill Item
+            <span class="prompt-indicator">?</span>
+        </button>
+    </div>
+
+    <h3>View Bills by Date</h3>
+    <input type="date" id="date-picker" onchange="handleDateChange()">
+    <div id="tooltip" class="help-tooltip"></div>
+</div>
+
+<div class="chatbox">
+    <div class="chat-header">
+        <h2>Database Assistant</h2>
+        <div class="query-suggestions">
+            <div class="suggestion-chip" onclick="sendQuery('Show all customers')">Show customers</div>
+            <div class="suggestion-chip" onclick="sendQuery('Display recent bills')">Recent bills</div>
+            <div class="suggestion-chip" onclick="sendQuery('Show current inventory')">View inventory</div>
+        </div>
+    </div>
+    
+    <div class="chat-display" id="chat-area">
+        <div class="welcome-message">
+            <h3>Welcome to Vittam.ai Assistant!</h3>
+            <p>I can help you manage your database with simple English commands. Try asking me to show customers, add products, or create bills.</p>
+            <p>Click the help buttons on the left for query examples or type your own question below.</p>
+        </div>
+    </div>
+    
+    <div id="error" style="display: none;"></div>
+    
+    <div class="chat-input">
+        <input type="text" id="query" placeholder="Type your database query in plain English...">
+        <button onclick="sendQuery()"><i class="fas fa-paper-plane"></i> Send</button>
+        <button class="mic-btn" id="mic-button" onclick="toggleVoiceInput()"><i class="fas fa-microphone"></i></button>
+    </div>
+</div>
+
+<script>
+    // Show the current date in the date picker
+    document.getElementById('date-picker').valueAsDate = new Date();
+    
+    // Help button tooltip functionality
+    const helpButtons = document.querySelectorAll('.help-button');
+    const tooltip = document.getElementById('tooltip');
+    
+    helpButtons.forEach(button => {
+        button.addEventListener('mouseenter', function() {
+            const prompt = this.getAttribute('data-prompt');
+            tooltip.textContent = prompt;
+            tooltip.style.display = 'block';
+            
+            // Position tooltip next to button
+            const buttonRect = this.getBoundingClientRect();
+            tooltip.style.top = `${buttonRect.top}px`;
+        });
+        
+        button.addEventListener('mouseleave', function() {
+            tooltip.style.display = 'none';
+        });
+        
+        button.addEventListener('click', function() {
+            const prompt = this.getAttribute('data-prompt');
+            tooltip.style.display = 'none';
+            
+            // Add a message from the assistant explaining how to use this query
+            addBotMessage(prompt);
+        });
+    });
+    
+    function handleDateChange() {
+        const date = document.getElementById('date-picker').value;
+        const formattedDate = new Date(date).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        
+        sendQuery(`Show me bills from ${formattedDate}`);
+    }
+    
+    function addUserMessage(message) {
+        const chatArea = document.getElementById("chat-area");
+        const userMessage = document.createElement("div");
+        userMessage.className = "message user-message";
+        
+        const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        userMessage.innerHTML = `
+            <span>${message}</span>
+            <div class="timestamp">${timestamp}</div>
+        `;
+        chatArea.appendChild(userMessage);
+        chatArea.scrollTop = chatArea.scrollHeight;
+    }
+    
+    function addBotMessage(message) {
+        const chatArea = document.getElementById("chat-area");
+        const botMessage = document.createElement("div");
+        botMessage.className = `message bot-message ${message.includes('<table') ? 'table-message' : ''}`;
+        
+        const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        botMessage.innerHTML = `
+            <span>${message}</span>
+            <div class="timestamp">${timestamp}</div>
+        `;
+        chatArea.appendChild(botMessage);
+        chatArea.scrollTop = chatArea.scrollHeight;
+    }
+    
+    async function sendQuery(query = document.getElementById("query").value.trim()) {
+        const queryInput = document.getElementById("query");
+        
+        if (!query) return;
+        
+        // Add user message
+        addUserMessage(query);
+        
+        // Clear input immediately
+        queryInput.value = "";
+        
+        try {
+            const response = await fetch("/query", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Server error: Unable to process the query.');
+            }
+            
+            const result = await response.json();
+            
+            // Process bot response
+            if (result.status === "success") {
+                if (typeof result.data === 'string') {
+                    // Simple text response
+                    addBotMessage(result.data);
+                } else if (result.data && result.data.type === "table") {
+                    // Table response
+                    let tableHTML = '<table><tr>';
+                    
+                    // Create table headers from columns
+                    result.data.columns.forEach(column => {
+                        tableHTML += `<th>${column}</th>`;
+                    });
+                    tableHTML += '</tr>';
+                    
+                    // Add data rows
+                    result.data.data.forEach(row => {
+                        tableHTML += '<tr>';
+                        result.data.columns.forEach(column => {
+                            tableHTML += `<td>${row[column] || ''}</td>`;
+                        });
+                        tableHTML += '</tr>';
+                    });
+                    
+                    tableHTML += '</table>';
+                    addBotMessage(tableHTML);
+                } else {
+                    // Handle other data formats
+                    addBotMessage(JSON.stringify(result.data));
+                }
+            } else if (result.status === "casual") {
+                // Casual conversation response
+                addBotMessage(result.data);
+            } else {
+                // Error response
+                addBotMessage(`<span stylestop working="color: #D53F8C;">${result.message}</span>`);
+            }
+        } catch (e) {
+            let errorMessage = "";
+            if (e.message.includes('Unable to process the query')) {
+                errorMessage = `<span style="color: #D53F8C;">Server error: Unable to process the query. Please try again later!</span>`;
+            } else if (e.message.includes('Failed to fetch')) {
+                errorMessage = `<span style="color: #D53F8C;">Network error: Please check your internet connection!</span>`;
+            } else {
+                errorMessage = `<span style="color: #D53F8C;">An unexpected error occurred: ${e.message}</span>`;
+            }
+            addBotMessage(errorMessage);
+        }
+    }
+    
+    document.getElementById("query").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+            sendQuery();
+        }
+    });
+
+    // Voice input functionality
+    let isListening = false;
+    const queryInput = document.getElementById("query");
+    const errorDiv = document.getElementById("error");
+    const micBtn = document.getElementById("mic-button");
+
+    // Initialize Web Speech API
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    function checkMicrophonePermission() {
+        return navigator.permissions.query({ name: 'microphone' }).then(permissionStatus => {
+            return permissionStatus.state === 'granted';
+        }).catch(() => false);
+    }
+
+    function initializeSpeechRecognition() {
+        if (!SpeechRecognition) {
+            errorDiv.textContent = 'Speech recognition is not supported in this browser. Please type your query or use a supported browser (e.g., Chrome).';
+            errorDiv.style.display = 'block';
+            micBtn.classList.add('disabled');
+            micBtn.disabled = true;
+            return null;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+        recognition.continuous = false;
+
+        recognition.onstart = () => {
+            isListening = true;
+            micBtn.innerHTML = '<i class="fas fa-microphone-slash"></i>';
+            micBtn.classList.add('listening');
+            errorDiv.style.display = 'none';
+            queryInput.placeholder = "Listening...";
+        };
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            queryInput.value = transcript;
+            sendQuery(transcript);
+        };
+
+        recognition.onend = () => {
+            isListening = false;
+            micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+            micBtn.classList.remove('listening');
+            queryInput.placeholder = "Type your database query in plain English...";
+        };
+
+        recognition.onerror = (event) => {
+            isListening = false;
+            micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+            micBtn.classList.remove('listening');
+            queryInput.placeholder = "Type your database query in plain English...";
+            let errorMsg = 'Speech recognition error';
+            switch (event.error) {
+                case 'no-speech':
+                    errorMsg = 'No speech detected. Please try again.';
+                    break;
+                case 'network':
+                    errorMsg = 'Network error. Please check your internet connection.';
+                    break;
+                case 'not-allowed':
+                case 'service-not-allowed':
+                    errorMsg = 'Microphone access denied. Please enable microphone permissions in your browser settings.';
+                    break;
+                case 'aborted':
+                    errorMsg = 'Speech recognition was aborted. Please try again.';
+                    break;
+                default:
+                    errorMsg = `Speech recognition error: ${event.error}`;
+            }
+            if (event.error !== 'no-speech') {
+                errorDiv.textContent = errorMsg;
+                errorDiv.style.display = 'block';
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 5000);
+            }
+        };
+
+        return recognition;
+    }
+
+    async function toggleVoiceInput() {
+        if (!recognition) return;
+
+        if (isListening) {
+            recognition.stop();
+        } else {
+            const hasPermission = await checkMicrophonePermission();
+            if (!hasPermission) {
+                errorDiv.textContent = 'Microphone access is required. Please allow microphone permissions.';
+                errorDiv.style.display = 'block';
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 5000);
+                return;
+            }
+
+            try {
+                recognition.start();
+            } catch (e) {
+                errorDiv.textContent = `Error starting speech recognition: ${e.message}`;
+                errorDiv.style.display = 'block';
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+    }
+
+    // Initialize recognition on page load
+    const recognition = initializeSpeechRecognition();
+
+    // Check microphone permission on load
+    checkMicrophonePermission().then(hasPermission => {
+        if (!hasPermission && recognition) {
+            errorDiv.textContent = 'Microphone access is required for voice input. Click the microphone button to request permission.';
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+    });
+</script>
+{% endblock %}

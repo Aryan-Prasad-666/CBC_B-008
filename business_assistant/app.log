@@ -1,0 +1,16 @@
+2025-05-01 22:17:20,096 - __main__ - INFO - Successfully loaded spaCy model
+2025-05-01 22:17:20,478 - werkzeug - WARNING -  * Debugger is active!
+2025-05-01 22:17:20,485 - werkzeug - INFO -  * Debugger PIN: 965-003-767
+2025-05-01 22:19:14,130 - werkzeug - INFO - 127.0.0.1 - - [01/May/2025 22:19:14] "GET /chat HTTP/1.1" 200 -
+2025-05-01 22:19:18,959 - __main__ - DEBUG - Response: {'status': 'casual', 'data': [{'message': 'Hello! How can I help you with your database today?'}]}
+2025-05-01 22:19:18,961 - werkzeug - INFO - 127.0.0.1 - - [01/May/2025 22:19:18] "POST /query HTTP/1.1" 200 -
+2025-05-01 22:19:27,913 - __main__ - DEBUG - Response: {'status': 'casual', 'data': [{'message': 'Hello! How can I help you with your database today?'}]}
+2025-05-01 22:19:27,914 - werkzeug - INFO - 127.0.0.1 - - [01/May/2025 22:19:27] "POST /query HTTP/1.1" 200 -
+2025-05-01 22:19:34,099 - __main__ - DEBUG - Matched intent add_record with params {'entity': 'customer', 'name': 'aryan'}
+2025-05-01 22:19:34,101 - __main__ - WARNING - No valid table in query: INSERT INTO customers (name) VALUES (?)
+2025-05-01 22:19:34,102 - __main__ - DEBUG - Response: {'status': 'error', 'data': [{'message': 'The generated SQL query is not valid or secure. Please try rephrasing your request.'}]}
+2025-05-01 22:19:34,102 - werkzeug - INFO - 127.0.0.1 - - [01/May/2025 22:19:34] "POST /query HTTP/1.1" 200 -
+2025-05-01 22:26:03,319 - werkzeug - INFO - 127.0.0.1 - - [01/May/2025 22:26:03] "GET /chat HTTP/1.1" 200 -
+2025-05-01 22:26:05,932 - __main__ - DEBUG - Response: {'status': 'casual', 'data': [{'message': 'Hello! How can I help you with your database today?'}]}
+2025-05-01 22:26:05,933 - werkzeug - INFO - 127.0.0.1 - - [01/May/2025 22:26:05] "POST /query HTTP/1.1" 200 -
+2025-05-01 22:29:48,129 - werkzeug - INFO -  * Detected change in 'c:\\Users\\Aryan Prasad\\Desktop\\web Development aryan\\testDB\\app.py', reloading

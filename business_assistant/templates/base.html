@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Vittam.ai{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #e6f0f5, #d0e4ec);
+            overflow-x: hidden;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(90deg, #1e5f74, #2a7b96, #3b9cbb);
+            padding: 20px 50px;
+            color: #e6f0f5;
+            font-size: 32px;
+            font-weight: 700;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+            border-bottom: 3px solid #1e5f74;
+            position: relative;
+            overflow: hidden;
+            border-radius: 0 0 15px 15px;
+            transition: all 0.4s ease;
+        }
+
+        .navbar::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(30, 95, 116, 0.2) 0%, transparent 70%);
+            animation: shimmer 10s infinite;
+            z-index: 0;
+        }
+
+        @keyframes shimmer {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .navbar:hover {
+            background: linear-gradient(90deg, #154a5e, #1e5f74, #2a7b96);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .navbar .navbar-brand {
+            margin: 0;
+            position: relative;
+            z-index: 1;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px rgba(230, 240, 245, 0.3);
+        }
+
+        .navbar-links {
+            display: flex;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .navbar-links a {
+            margin-left: 35px;
+            text-decoration: none;
+            color: #e6f0f5;
+            font-size: 18px;
+            font-weight: 600;
+            padding: 8px 15px;
+            border-radius: 10px;
+            background: rgba(230, 240, 245, 0.1);
+            backdrop-filter: blur(5px);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .navbar-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background: #1e5f74;
+            transition: width 0.3s ease;
+        }
+
+        .navbar-links a:hover {
+            color: #ffffff;
+            background: rgba(230, 240, 245, 0.2);
+            transform: scale(1.15);
+        }
+
+        .navbar-links a:hover::after {
+            width: 100%;
+        }
+
+        .main {
+            display: flex;
+            height: calc(100vh - 80px);
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="navbar-brand">Vittam.ai</div>
+        <div class="navbar-links">
+            <a href="http://127.0.0.1:5000/">Home</a>
+        </div>
+    </div>
+
+    <div class="main">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>
