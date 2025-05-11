@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify, flash, redirect, url
 from werkzeug.exceptions import BadRequest, InternalServerError
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import PromptTemplate
-from datetime import datetime, timedelta  # Add this import if not already present
+from datetime import datetime, timedelta 
 from dotenv import load_dotenv
 import os
 import json
@@ -24,11 +24,9 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'your-secret-key')
 
-# Set up logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-# Initialize SQLite database
 def init_db():
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
@@ -54,7 +52,6 @@ def init_db():
 
 init_db()
 
-# Initialize API keys
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
 if not GEMINI_API_KEY:
@@ -62,7 +59,6 @@ if not GEMINI_API_KEY:
 if not GOOGLE_API_KEY:
     raise ValueError("GOOGLE_API_KEY environment variable not set")
 
-# Use Gemini 2.0 Flash
 llm = ChatGoogleGenerativeAI(
     model="gemini-2.0-flash",
     google_api_key=GEMINI_API_KEY,
@@ -70,7 +66,6 @@ llm = ChatGoogleGenerativeAI(
     max_output_tokens=1500
 )
 
-# Language instructions for chatbot
 language_instructions = {
     "en-US": {
         "general": "You are a friendly financial advisor for Indian villagers with no prior financial knowledge. Provide simple, detailed, and patient responses in English related to financial planning, loans, investments, and banking, using examples relevant to rural life (e.g., farming loans, savings for crops). Explain basic concepts step-by-step, assuming the user knows nothing about finance. Do not answer queries unrelated to finance or loans; politely redirect to financial topics with encouragement to learn.",
@@ -99,7 +94,6 @@ language_instructions = {
     }
 }
 
-# Existing Routes
 @app.route('/')
 def index():
     lang = request.args.get('lang', 'en')
@@ -149,7 +143,6 @@ def check_eligibility():
         except (ValueError, TypeError):
             return jsonify({"error": "Invalid numeric input"}), 400
 
-        # Manual basic validation with relaxed criteria
         if not (18 <= age <= 65):
             logger.info(f"Rejected: Age {age} not between 18 and 65")
             return jsonify({"status": "rejected", "reason": "Age must be between 18 and 65."}), 200
